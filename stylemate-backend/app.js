@@ -1,9 +1,11 @@
 require("dotenv").config();
 const express = require("express");
 const authRoutes = require("./routes/authRoutes");
+const clothingRoutes = require("./routes/clothingRoutes");
 const app = express();
 const db = require("./config/db");
 const User = require("./models/User");
+const ClothingItem = require("./models/ClothingItem");
 app.use(express.json());
 db.authenticate()
   .then(() => console.log("connection successful"))
@@ -21,3 +23,4 @@ app.listen(5000, () => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/clothing", clothingRoutes);
