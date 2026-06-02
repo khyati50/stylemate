@@ -30,5 +30,15 @@ const ClothingItem = db.define("ClothingItem", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+
+  seasons: {
+    type: DataTypes.JSON,
+    allowNull: true,
+  },
+
+  occasions: {
+    type: DataTypes.JSON,
+    allowNull: true,
+  },
 });
 module.exports = ClothingItem;

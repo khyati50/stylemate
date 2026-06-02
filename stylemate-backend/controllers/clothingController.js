@@ -1,7 +1,7 @@
-const { where } = require("sequelize");
 const ClothingItem = require("../models/ClothingItem");
 const addClothingItem = async (req, res) => {
-  const { name, category, color, style, imageUrl } = req.body;
+  const { name, category, color, style, seasons, occasions, imageUrl } =
+    req.body;
   const userId = req.user.id;
   const clothingItem = await ClothingItem.create({
     userId,
@@ -9,6 +9,8 @@ const addClothingItem = async (req, res) => {
     color,
     category,
     style,
+    seasons,
+    occasions,
     imageUrl,
   });
 
@@ -58,7 +60,8 @@ const deleteClothingItem = async (req, res) => {
 const updateClothingItem = async (req, res) => {
   const clothingId = req.params.id;
   const userId = req.user.id;
-  const { name, category, color, style, imageUrl } = req.body;
+  const { name, category, color, style, seasons, occasions, imageUrl } =
+    req.body;
   const clothingItem = await ClothingItem.findOne({
     where: { id: clothingId },
   });
@@ -85,6 +88,12 @@ const updateClothingItem = async (req, res) => {
   }
   if (style) {
     clothingItem.style = style;
+  }
+  if (seasons) {
+    clothingItem.seasons = seasons;
+  }
+  if (occasions) {
+    clothingItem.occasions = occasions;
   }
   if (imageUrl) {
     clothingItem.imageUrl = imageUrl;
