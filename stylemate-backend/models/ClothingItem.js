@@ -21,9 +21,9 @@ const ClothingItem = db.define("ClothingItem", {
     allowNull: false,
   },
 
-  color: {
-    type: DataTypes.STRING,
-    allowNull: false,
+  colors: {
+    type: DataTypes.JSON,
+    allowNull: true,
   },
 
   imageUrl: {

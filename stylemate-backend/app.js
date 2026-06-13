@@ -6,6 +6,8 @@ const app = express();
 const db = require("./config/db");
 const User = require("./models/User");
 const ClothingItem = require("./models/ClothingItem");
+const cors = require("cors");
+app.use(cors());
 app.use(express.json());
 db.authenticate()
   .then(() => console.log("connection successful"))

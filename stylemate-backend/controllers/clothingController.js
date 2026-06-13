@@ -1,12 +1,12 @@
 const ClothingItem = require("../models/ClothingItem");
 const addClothingItem = async (req, res) => {
-  const { name, category, color, style, seasons, occasions, imageUrl } =
+  const { name, category, colors, style, seasons, occasions, imageUrl } =
     req.body;
   const userId = req.user.id;
   const clothingItem = await ClothingItem.create({
     userId,
     name,
-    color,
+    colors,
     category,
     style,
     seasons,
@@ -60,7 +60,7 @@ const deleteClothingItem = async (req, res) => {
 const updateClothingItem = async (req, res) => {
   const clothingId = req.params.id;
   const userId = req.user.id;
-  const { name, category, color, style, seasons, occasions, imageUrl } =
+  const { name, category, colors, style, seasons, occasions, imageUrl } =
     req.body;
   const clothingItem = await ClothingItem.findOne({
     where: { id: clothingId },
@@ -83,8 +83,8 @@ const updateClothingItem = async (req, res) => {
   if (category) {
     clothingItem.category = category;
   }
-  if (color) {
-    clothingItem.color = color;
+  if (colors) {
+    clothingItem.colors = colors;
   }
   if (style) {
     clothingItem.style = style;
