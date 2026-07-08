@@ -15,6 +15,13 @@ function Wardrobe() {
   const [message, setMessage] = useState("");
   const [editId, setEditId] = useState(null);
   const [wardrobe, setWardrobe] = useState([]);
+  const [filter, setFilter] = useState({
+    category: "",
+    colors: "",
+    style: "",
+    occasions: "",
+    seasons: "",
+  });
   async function GetWardrobe() {
     const token = localStorage.getItem("token");
     const response = await fetch(
@@ -132,6 +139,37 @@ function Wardrobe() {
       });
     }
   }
+
+  function getUniqueValues(property) {
+    const values = wardrobe.flatMap((item) => item[property]);
+    return [...new Set(values)];
+  }
+  const uniqueCategories = getUniqueValues("category");
+  const uniqueStyle = getUniqueValues("style");
+  const uniqueColour = getUniqueValues("colors");
+  const uniqueSeasons = getUniqueValues("seasons");
+  const uniqueOccasions = getUniqueValues("occasions");
+  const filteredWardrobe = wardrobe.filter((item) => {
+    const categoryMatch =
+      filter.category === "" || item.category === filter.category;
+
+    const styleMatch = filter.style === "" || item.style === filter.style;
+
+    const colorMatch =
+      filter.colors === "" || item.colors.includes(filter.colors);
+
+    const seasonMatch =
+      filter.seasons === "" || item.seasons.includes(filter.seasons);
+
+    const occasionMatch =
+      filter.occasions === "" || item.occasions.includes(filter.occasions);
+
+    return (
+      categoryMatch && styleMatch && colorMatch && seasonMatch && occasionMatch
+    );
+  });
+
+  console.log(filter);
   return (
     <div className="wardrobe-page">
       <h1>Wardrobe</h1>
@@ -222,8 +260,84 @@ function Wardrobe() {
 
       {message && <p>{message}</p>}
 
+      <select
+        value={filter.category}
+        onChange={(event) =>
+          setFilter({ ...filter, category: event.target.value })
+        }
+      >
+        <option value="">All Categories</option>
+        {uniqueCategories.map((category) => (
+          <option key={category}>{category}</option>
+        ))}
+      </select>
+
+      <select
+        value={filter.style}
+        onChange={(event) =>
+          setFilter({ ...filter, style: event.target.value })
+        }
+      >
+        <option value="">All Styles</option>
+        {uniqueStyle.map((style) => (
+          <option key={style} value={style}>
+            {style}
+          </option>
+        ))}
+      </select>
+
+      <select
+        value={filter.colors}
+        onChange={(event) =>
+          setFilter({ ...filter, colors: event.target.value })
+        }
+      >
+        <option value="">All colors</option>
+        {uniqueColour.map((color) => (
+          <option key={color} value={color}>
+            {color}
+          </option>
+        ))}
+      </select>
+
+      <select
+        value={filter.seasons}
+        onChange={(event) =>
+          setFilter({
+            ...filter,
+            seasons: event.target.value,
+          })
+        }
+      >
+        <option value="">All Seasons</option>
+
+        {uniqueSeasons.map((season) => (
+          <option key={season} value={season}>
+            {season}
+          </option>
+        ))}
+      </select>
+
+      <select
+        value={filter.occasions}
+        onChange={(event) =>
+          setFilter({
+            ...filter,
+            occasions: event.target.value,
+          })
+        }
+      >
+        <option value="">All Occasions</option>
+
+        {uniqueOccasions.map((occasion) => (
+          <option key={occasion} value={occasion}>
+            {occasion}
+          </option>
+        ))}
+      </select>
+
       <div className="wardrobe-grid">
-        {wardrobe.map((item) => (
+        {filteredWardrobe.map((item) => (
           <div className="wardrobe-card" key={item.id}>
             <h3>{item.name}</h3>
             <p>{item.category}</p>
