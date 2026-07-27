@@ -1,22 +1,17 @@
-import { Link } from "react-router-dom";
-import "../styles/Landing.css";
+import Navbar from "../components/Navbar";
+import Hero from "../components/Hero";
+import Features from "../components/Features";
+import HowItWorks from "../components/HowItWorks";
+import Footer from "../components/Footer";
 
 function Landing() {
   return (
-    <div className="landing-page">
-      <h1>StyleMate</h1>
-
-      <p>Your smart wardrobe assistant</p>
-
-      <div className="auth-buttons">
-        <Link to="/login">
-          <button>Login</button>
-        </Link>
-
-        <Link to="/register">
-          <button>Register</button>
-        </Link>
-      </div>
+    <div className="bg-[#FAF7F2]">
+      <Navbar />
+      <Hero />
+      <Features />
+      <HowItWorks />
+      <Footer />
     </div>
   );
 }

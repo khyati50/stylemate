@@ -1,5 +1,9 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500;600&display=swap");
+
+@import "tailwindcss";
+
+body {
+  font-family: "Poppins", sans-serif;
+  background: #faf7f2;
+  color: #2e2e2e;
 }

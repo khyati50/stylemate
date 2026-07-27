@@ -2,13 +2,17 @@ require("dotenv").config();
 const express = require("express");
 const authRoutes = require("./routes/authRoutes");
 const clothingRoutes = require("./routes/clothingRoutes");
+const recommendationRoutes = require("./routes/recommendationRoutes");
 const app = express();
+const path = require("path");
 const db = require("./config/db");
 const User = require("./models/User");
 const ClothingItem = require("./models/ClothingItem");
 const cors = require("cors");
+
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 db.authenticate()
   .then(() => console.log("connection successful"))
   .catch((err) => console.log("error"));
@@ -26,3 +30,4 @@ app.listen(5000, () => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/clothing", clothingRoutes);
+app.use("/api/recommendation", recommendationRoutes);
