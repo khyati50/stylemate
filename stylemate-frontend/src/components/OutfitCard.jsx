@@ -26,7 +26,7 @@ function OutfitCard({ title, item }) {
 
         {item && (
           <>
-            <p className="mt-2 text-gray-500">{item.style}</p>
+            <p className="mt-2 text-gray-500">{item.styles.join(", ")}</p>
 
             <p className="mt-3 text-sm text-gray-600">
               {item.colors.join(", ")}

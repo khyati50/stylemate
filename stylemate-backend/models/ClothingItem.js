@@ -11,9 +11,9 @@ const ClothingItem = db.define("ClothingItem", {
     allowNull: false,
   },
 
-  style: {
-    type: DataTypes.STRING,
-    allowNull: false,
+  styles: {
+    type: DataTypes.JSON,
+    allowNull: true,
   },
 
   category: {
@@ -39,6 +39,12 @@ const ClothingItem = db.define("ClothingItem", {
   occasions: {
     type: DataTypes.JSON,
     allowNull: true,
+  },
+
+  status: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: "available",
   },
 });
 module.exports = ClothingItem;

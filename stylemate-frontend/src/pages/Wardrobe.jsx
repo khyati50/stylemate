@@ -9,7 +9,7 @@ const initialFormData = {
   name: "",
   category: "",
   colors: "",
-  style: "",
+  styles: "",
   image: null,
   occasions: "",
   seasons: "",
@@ -32,7 +32,7 @@ function Wardrobe() {
   const [filter, setFilter] = useState({
     category: "",
     colors: "",
-    style: "",
+    styles: "",
     occasions: "",
     seasons: "",
   });
@@ -49,7 +49,7 @@ function Wardrobe() {
       name: item.name,
       category: item.category,
       colors: item.colors.join(", "),
-      style: item.style,
+      styles: item.styles.join(", "),
       image: null,
       occasions: item.occasions.join(", "),
       seasons: item.seasons.join(", "),
@@ -103,7 +103,7 @@ function Wardrobe() {
       form.append("name", formData.name);
       form.append("category", formData.category);
       form.append("colors", formData.colors);
-      form.append("style", formData.style);
+      form.append("styles", formData.styles);
       form.append("occasions", formData.occasions);
       form.append("seasons", formData.seasons);
       form.append("image", formData.image);
@@ -186,7 +186,7 @@ function Wardrobe() {
             name: formData.name,
             category: formData.category,
             colors: formData.colors.split(",").map((c) => c.trim()),
-            style: formData.style,
+            styles: formData.styles.split(",").map((s) => s.trim()),
             occasions: formData.occasions.split(",").map((o) => o.trim()),
             seasons: formData.seasons.split(",").map((s) => s.trim()),
           }),
@@ -220,7 +220,7 @@ function Wardrobe() {
   }
 
   const uniqueCategories = getUniqueValues("category");
-  const uniqueStyle = getUniqueValues("style");
+  const uniqueStyles = getUniqueValues("styles");
   const uniqueColour = getUniqueValues("colors");
   const uniqueSeasons = getUniqueValues("seasons");
   const uniqueOccasions = getUniqueValues("occasions");
@@ -229,7 +229,7 @@ function Wardrobe() {
     const categoryMatch =
       filter.category === "" || item.category === filter.category;
 
-    const styleMatch = filter.style === "" || item.style === filter.style;
+    const styleMatch = filter.styles === "" || item.styles.includes(filter.styles);
 
     const colorMatch =
       filter.colors === "" || item.colors.includes(filter.colors);
@@ -300,12 +300,12 @@ function Wardrobe() {
             </select>
 
             <select
-              value={filter.style}
-              onChange={(e) => setFilter({ ...filter, style: e.target.value })}
+              value={filter.styles}
+              onChange={(e) => setFilter({ ...filter, styles: e.target.value })}
               className="rounded-lg border border-gray-300 p-3 outline-none focus:border-[#8B6F47]"
             >
               <option value="">All Styles</option>
-              {uniqueStyle.map((style) => (
+              {uniqueStyles.map((style) => (
                 <option key={style} value={style}>
                   {style}
                 </option>

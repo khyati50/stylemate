@@ -69,7 +69,9 @@ function ClothingModal({
               <option value="">Select Category</option>
               <option value="Top">Top</option>
               <option value="Bottom">Bottom</option>
-              <option value="Shoes">Shoes</option>
+              <option value="Full Body">Full Body</option>
+              <option value="Footwear">Footwear</option>
+              <option value="Outerwear">Outerwear</option>
               <option value="Accessory">Accessory</option>
             </select>
           </div>
@@ -92,16 +94,16 @@ function ClothingModal({
           </div>
 
           <div>
-            <label className="mb-2 block font-medium">Style</label>
+            <label className="mb-2 block font-medium">Styles</label>
 
             <input
               type="text"
-              placeholder="Casual"
-              value={formData.style}
+              placeholder="Casual, Streetwear"
+              value={formData.styles}
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  style: e.target.value,
+                  styles: e.target.value,
                 })
               }
               className="w-full rounded-xl border border-gray-300 p-3 outline-none focus:border-[#8B6F47]"

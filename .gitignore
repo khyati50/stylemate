@@ -7,3 +7,21 @@
 
 # Backend uploads
 stylemate-backend/uploads/
+
+# Python virtual environment
+ai/venv/
+
+# Python cache
+ai/__pycache__/
+**/__pycache__/
+*.pyc
+
+# Jupyter
+ai/notebooks/.ipynb_checkpoints/
+
+# Environment files
+.env
+ai/.env
+
+# Temporary AI docs
+ai/docs/

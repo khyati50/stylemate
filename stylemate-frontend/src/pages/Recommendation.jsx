@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthNavbar from "../components/AuthNavbar";
 import OutfitCard from "../components/OutfitCard";
@@ -6,7 +6,11 @@ import OutfitCard from "../components/OutfitCard";
 function Recommendation() {
   const [occasion, setOccasion] = useState("");
   const [season, setSeason] = useState("");
-  const [recommendation, setRecommendation] = useState(null);
+  const [availableOccasions, setAvailableOccasions] = useState([]);
+  const [availableStyles, setAvailableStyles] = useState([]);
+  const [availableColors, setAvailableColors] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -18,7 +22,8 @@ function Recommendation() {
       const token = localStorage.getItem("token");
       if (!occasion || !season) {
         setMessage("Please select both occasion and season.");
-        setRecommendation(null);
+        setRecommendations(data.outfits);
+        setCurrentIndex(0);
         return;
       }
 
@@ -49,10 +54,12 @@ function Recommendation() {
       const data = await response.json();
 
       if (response.ok) {
-        setRecommendation(data.outfit);
+        setRecommendations(data.outfits);
+        setCurrentIndex(0);
         setMessage("");
       } else {
-        setRecommendation(null);
+        setRecommendations([]);
+        setCurrentIndex(0);
         setMessage(data.message);
       }
     } catch (error) {
@@ -62,6 +69,36 @@ function Recommendation() {
       setLoading(false);
     }
   }
+  async function fetchRecommendationFilters() {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+        "http://localhost:5000/api/recommendation/filters",
+        {
+          headers: {
+            authorization: token,
+          },
+        },
+      );
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+
+      setAvailableOccasions(data.occasions || []);
+      setAvailableStyles(data.styles || []);
+      setAvailableColors(data.colors || []);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  useEffect(() => {
+    fetchRecommendationFilters();
+  }, []);
+
+  const recommendation = recommendations[currentIndex]?.outfit || null;
 
   return (
     <div className="min-h-screen bg-[#FAF7F2] px-6 py-10">
@@ -94,13 +131,12 @@ function Recommendation() {
                 className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-[#2E2E2E] outline-none transition focus:border-[#8B6F47] focus:ring-2 focus:ring-[#8B6F47]/20"
               >
                 <option value="">Select Occasion</option>
-                <option value="casual">Casual</option>
-                <option value="college">College</option>
-                <option value="meetings">Meetings</option>
-                <option value="cafe">Cafe</option>
-                <option value="hangouts">Hangouts</option>
-                <option value="get together">Get Together</option>
-                <option value="dinners">Dinners</option>
+
+                {availableOccasions.map((occasion) => (
+                  <option key={occasion} value={occasion}>
+                    {occasion.charAt(0).toUpperCase() + occasion.slice(1)}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -188,9 +224,11 @@ function Recommendation() {
               {loading ? "Finding Your Outfit..." : "Find My Outfit"}
             </button>
 
-            {recommendation && (
+            {recommendations.length > 0 && (
               <button
-                onClick={HandleRecommendation}
+                onClick={() =>
+                  setCurrentIndex((prev) => (prev + 1) % recommendations.length)
+                }
                 disabled={loading}
                 className="rounded-xl border border-[#8B6F47] px-8 py-3 font-medium text-[#8B6F47] transition hover:bg-[#8B6F47] hover:text-white disabled:opacity-50"
               >
@@ -212,10 +250,21 @@ function Recommendation() {
             </h2>
 
             <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
-              <OutfitCard title="Top" item={recommendation.top} />
-              <OutfitCard title="Bottom" item={recommendation.bottom} />
-              <OutfitCard title="Shoes" item={recommendation.shoes} />
-              <OutfitCard title="Accessory" item={recommendation.accessory} />
+              {recommendation.fullBody ? (
+                <OutfitCard title="Full Body" item={recommendation.fullBody} />
+              ) : (
+                <>
+                  <OutfitCard title="Top" item={recommendation.top} />
+                  <OutfitCard title="Bottom" item={recommendation.bottom} />
+                </>
+              )}
+              <OutfitCard title="Footwear" item={recommendation.footwear} />
+              {recommendation.outerwear && (
+                <OutfitCard title="Outerwear" item={recommendation.outerwear} />
+              )}
+              {recommendation.accessory && (
+                <OutfitCard title="Accessory" item={recommendation.accessory} />
+              )}
             </div>
           </>
         )}

@@ -23,7 +23,7 @@ function ClothingCard({ item, onDelete, onEdit }) {
             {item.name}
           </h3>
 
-          <p className="mt-1 text-sm text-gray-500">{item.style}</p>
+          <p className="mt-1 text-sm text-gray-500">{item.styles.join(", ")}</p>
         </div>
 
         {/* Details */}

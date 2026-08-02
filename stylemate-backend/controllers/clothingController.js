@@ -1,22 +1,26 @@
 const ClothingItem = require("../models/ClothingItem");
 const addClothingItem = async (req, res) => {
   try {
-    const { name, category, colors, style, seasons, occasions } = req.body;
+    const { name, category, colors, styles, seasons, occasions } = req.body;
     const imageUrl = req.file.path;
 
     const userId = req.user.id;
-    const colorsArray = colors.split(",").map((c) => c.trim());
-    const occasionsArray = occasions.split(",").map((o) => o.trim());
-    const seasonsArray = seasons.split(",").map((s) => s.trim());
+    const colorsArray = colors.split(",").map((c) => c.trim().toLowerCase());
+    const stylesArray = styles.split(",").map((s) => s.trim().toLowerCase());
+    const occasionsArray = occasions
+      .split(",")
+      .map((o) => o.trim().toLowerCase());
+    const seasonsArray = seasons.split(",").map((s) => s.trim().toLowerCase());
     const clothingItem = await ClothingItem.create({
       userId,
       name,
       colors: colorsArray,
       category,
-      style,
+      styles: stylesArray,
       occasions: occasionsArray,
       seasons: seasonsArray,
       imageUrl,
+      status: "available",
     });
 
     res.status(201).json({
@@ -88,7 +92,7 @@ const updateClothingItem = async (req, res) => {
     const clothingId = req.params.id;
     const userId = req.user.id;
 
-    const { name, category, colors, style, seasons, occasions, imageUrl } =
+    const { name, category, colors, styles, seasons, occasions, imageUrl } =
       req.body;
 
     const clothingItem = await ClothingItem.findOne({
@@ -110,7 +114,7 @@ const updateClothingItem = async (req, res) => {
     if (name) clothingItem.name = name;
     if (category) clothingItem.category = category;
     if (colors) clothingItem.colors = colors;
-    if (style) clothingItem.style = style;
+    if (styles) clothingItem.styles = styles;
     if (seasons) clothingItem.seasons = seasons;
     if (occasions) clothingItem.occasions = occasions;
     if (imageUrl) clothingItem.imageUrl = imageUrl;
