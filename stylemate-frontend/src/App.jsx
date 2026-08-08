@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Wardrobe from "./pages/Wardrobe";
 import Recommendation from "./pages/Recommendation";
 import PublicRoute from "./components/PublicRoute";
+import History from "./pages/History";
 
 function App() {
   return (
@@ -46,6 +47,8 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+      <Route path="/history" element={<History />} />
     </Routes>
   );
 }

@@ -34,6 +34,10 @@ function AuthNavbar() {
           Recommendations
         </Link>
 
+        <Link to="/history" className={navLinkClass("/history")}>
+          History
+        </Link>
+
         <button
           onClick={handleLogout}
           className="rounded-xl border border-red-500 px-4 py-2 text-red-500 transition hover:bg-red-500 hover:text-white"
