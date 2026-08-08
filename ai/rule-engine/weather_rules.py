@@ -45,7 +45,8 @@ def filter_by_season(clothes, selected_season):
             for season in item.get("seasons", [])
         )
 
-        if selected_season.lower() in item_seasons:
+        # "all" means the item is appropriate for every season
+        if "all" in item_seasons or selected_season.lower() in item_seasons:
             filtered.append(item)
 
     return filtered

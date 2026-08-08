@@ -75,6 +75,8 @@ const recommendOutfit = async (req, res) => {
     const {
       occasion = "",
       season = "",
+      style = "",
+      color = "",
       weather = null,
       user_preferences = null,
       user_history = null,
@@ -103,8 +105,8 @@ const recommendOutfit = async (req, res) => {
       },
       user_preferences: user_preferences || {
         occasion: occasion || "casual",
-        preferred_style: req.body.preferred_style || "",
-        preferred_colors: req.body.preferred_colors || [],
+        preferred_style: style,
+        preferred_color: color,
       },
 
       //       TODO:
