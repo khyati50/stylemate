@@ -3,8 +3,9 @@ import heroImage from "../assets/hero.png";
 
 function Hero() {
   return (
+
     <section className="min-h-screen flex items-center bg-[#FAF7F2]">
-      <div className="max-w-7xl mx-auto w-full px-8 lg:px-16 pt-20">
+      <div className="max-w-7xl mx-auto w-full px-6 sm:px-8 lg:px-16 pt-16 sm:pt-20 lg:pt-28 pb-10">
         <div className="grid grid-cols-1 lg:grid-cols-5 items-center gap-10">
           {/* Left Content */}
 
