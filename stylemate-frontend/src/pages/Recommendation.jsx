@@ -1,11 +1,20 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import AuthNavbar from "../components/AuthNavbar";
 import OutfitCard from "../components/OutfitCard";
+import Toast from "../components/Toast";
 
 function Recommendation() {
   const [occasion, setOccasion] = useState("");
-  const [season, setSeason] = useState("");
+  const [season, setSeason] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const s = params.get("season")?.toLowerCase();
+      return s && ["summer", "winter", "spring", "autumn"].includes(s) ? s : "";
+    } catch {
+      return "";
+    }
+  });
   const [availableOccasions, setAvailableOccasions] = useState([]);
   const [availableStyles, setAvailableStyles] = useState([]);
   const [availableColors, setAvailableColors] = useState([]);
@@ -21,8 +30,31 @@ function Recommendation() {
   const [feedbackDetails, setFeedbackDetails] = useState("");
   const [style, setStyle] = useState("");
   const [color, setColor] = useState("");
+  const [toast, setToast] = useState(null); // { message, variant }
+  const [userPreferences, setUserPreferences] = useState(null);
+
+  const showToast = (message, variant = "success") => {
+    setToast({ message, variant });
+  };
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const urlSeason = searchParams.get("season");
+  const urlCity = searchParams.get("city");
+  const urlTemp = searchParams.get("temp");
+  const [weatherBannerDismissed, setWeatherBannerDismissed] = useState(false);
+
+  useEffect(() => {
+    if (urlSeason) {
+      const s = urlSeason.toLowerCase();
+      if (["summer", "winter", "spring", "autumn"].includes(s)) {
+        setSeason((prev) => (prev !== s ? s : prev));
+      }
+    }
+    if (urlCity) {
+      setWeatherBannerDismissed(false);
+    }
+  }, [urlSeason, urlCity]);
 
   async function HandleRecommendation() {
     try {
@@ -105,8 +137,35 @@ function Recommendation() {
     }
   }
 
+  async function fetchUserPreferences() {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const response = await fetch("http://localhost:5000/api/preferences", {
+        headers: {
+          authorization: token,
+        },
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem("token");
+        navigate("/login");
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserPreferences(data.preferences || null);
+      }
+    } catch (error) {
+      console.error("fetchUserPreferences error:", error);
+    }
+  }
+
   useEffect(() => {
     fetchRecommendationFilters();
+    fetchUserPreferences();
   }, []);
 
   const recommendation = recommendations[currentIndex]?.outfit || null;
@@ -146,13 +205,13 @@ function Recommendation() {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Outfit added to history!");
+        showToast("Outfit added to history!");
       } else {
-        alert(data.message);
+        showToast(data.message, "error");
       }
     } catch (error) {
       console.error(error);
-      alert("Something went wrong.");
+      showToast("Something went wrong.", "error");
     }
   }
 
@@ -176,7 +235,7 @@ function Recommendation() {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Thank you for your feedback!");
+        showToast("Thank you for your feedback!");
 
         setShowFeedbackModal(false);
         setFeedbackReason("");
@@ -191,11 +250,11 @@ function Recommendation() {
           setIsTransitioning(false);
         }, 150);
       } else {
-        alert(data.message);
+        showToast(data.message, "error");
       }
     } catch (error) {
       console.error(error);
-      alert("Something went wrong.");
+      showToast("Something went wrong.", "error");
     }
   }
 
@@ -206,6 +265,63 @@ function Recommendation() {
       setCurrentIndex((prev) => (prev + 1) % recommendations.length);
       setIsTransitioning(false);
     }, 150);
+  };
+
+  /**
+   * Generates a 1–2 sentence human-readable reason for the current outfit recommendation.
+   * Collects styles from all outfit slots, finds the most common style, and composes a sentence.
+   */
+  const generateOutfitReason = (outfit, occasion, season) => {
+    if (!outfit) return "";
+
+    const slots = [
+      outfit.fullBody,
+      outfit.top,
+      outfit.bottom,
+      outfit.footwear,
+      outfit.outerwear,
+      outfit.accessory,
+    ].filter(Boolean);
+
+    const allStyles = slots.flatMap((item) =>
+      Array.isArray(item.styles) ? item.styles : [],
+    );
+
+    const styleFreq = allStyles.reduce((acc, s) => {
+      acc[s] = (acc[s] || 0) + 1;
+      return acc;
+    }, {});
+
+    const dominantStyle =
+      Object.keys(styleFreq).sort((a, b) => styleFreq[b] - styleFreq[a])[0] ||
+      null;
+
+    const parts = [];
+    if (dominantStyle) {
+      parts.push(
+        `This outfit leans towards a ${dominantStyle} aesthetic`,
+      );
+    } else {
+      parts.push("This outfit is thoughtfully curated from your wardrobe");
+    }
+
+    const contextParts = [];
+    if (occasion) contextParts.push(`your ${occasion} occasion`);
+    if (season) contextParts.push(`the ${season} season`);
+
+    if (contextParts.length > 0) {
+      parts[0] += `, making it a great fit for ${contextParts.join(" and ")}.`;
+    } else {
+      parts[0] += ".";
+    }
+
+    if (slots.length > 1) {
+      parts.push(
+        `The ${slots.length} pieces complement each other for a cohesive look.`,
+      );
+    }
+
+    return parts.join(" ");
   };
 
   return (
@@ -232,6 +348,24 @@ function Recommendation() {
 
         {/* Recommendation Controls */}
         <div className="mx-auto mb-14 max-w-3xl rounded-3xl border border-gray-200/80 bg-white p-5 md:p-10 shadow-sm">
+          {!weatherBannerDismissed && urlCity && (urlSeason || urlTemp) && (
+            <div className="mb-6 flex items-center justify-between rounded-2xl border border-[#8B6F47]/25 bg-gradient-to-r from-[#8B6F47]/15 via-[#FAF7F2] to-[#8B6F47]/10 px-4 py-3 text-xs md:text-sm font-medium text-[#8B6F47]">
+              <div className="flex items-center gap-2">
+                <span>
+                  🌤️ Styling for {urlCity} forecast ({urlTemp ? `${urlTemp}°C · ` : ""}{urlSeason || season}). Choose your occasion below.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setWeatherBannerDismissed(true)}
+                className="ml-2 text-gray-400 hover:text-[#8B6F47] transition"
+                title="Dismiss banner"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           <div className="grid gap-3 grid-cols-2 md:gap-6 md:grid-cols-2">
             <div>
               <label className="mb-1.5 md:mb-2 block text-[10px] md:text-xs font-semibold uppercase tracking-wider text-[#8B6F47]">
@@ -405,6 +539,16 @@ function Recommendation() {
                 : "opacity-100 translate-y-0 scale-100"
             }`}
           >
+            {(userPreferences?.favoriteStyles?.length > 0 ||
+              userPreferences?.favoriteColors?.length > 0) && (
+              <div className="mb-6 flex items-center gap-2 rounded-2xl border border-[#8B6F47]/20 bg-[#8B6F47]/10 px-4 py-3 text-xs md:text-sm font-medium text-[#8B6F47]">
+                <span>✨</span>
+                <span>
+                  {`Personalized for you: ${userPreferences?.favoriteStyles?.[0] || ""} style, ${userPreferences?.favoriteColors?.[0] || ""} tones.`}
+                </span>
+              </div>
+            )}
+
             <div className="mb-8 flex flex-col items-center justify-between gap-4 border-b border-gray-200/60 pb-6 md:flex-row">
               <div>
                 <span className="text-xs font-semibold uppercase tracking-widest text-[#8B6F47]">
@@ -463,6 +607,12 @@ function Recommendation() {
               )}
             </div>
 
+            {/* Why This Outfit? */}
+            <div className="mt-6 rounded-2xl border border-[#EAE5DD] bg-[#FAF7F2] p-4">
+              <p className="text-xs text-gray-500">
+                {generateOutfitReason(recommendation, occasion, season)}
+              </p>
+            </div>
 
             {/* Action Buttons Toolbar */}
             <div className="mt-10 flex flex-wrap justify-center gap-4 border-t border-gray-200/60 pt-8">
@@ -578,6 +728,13 @@ function Recommendation() {
           </div>
         )}
       </div>
+      {toast && (
+        <Toast
+          message={toast.message}
+          variant={toast.variant}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

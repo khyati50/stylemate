@@ -2,6 +2,7 @@ import AuthNavbar from "../components/AuthNavbar";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import OutfitCard from "../components/OutfitCard";
+import Toast from "../components/Toast";
 
 function History() {
   const [history, setHistory] = useState([]);
@@ -10,6 +11,12 @@ function History() {
   const [selectedHistory, setSelectedHistory] = useState(null);
   const [selectedDetailEntry, setSelectedDetailEntry] = useState(null);
   const [rating, setRating] = useState(0);
+  const [ratingFeedbackReason, setRatingFeedbackReason] = useState("");
+  const [toast, setToast] = useState(null); // { message, variant }
+
+  const showToast = (message, variant = "success") => {
+    setToast({ message, variant });
+  };
 
   const navigate = useNavigate();
 
@@ -59,24 +66,26 @@ function History() {
           historyId: selectedHistory.id,
           outfit: selectedHistory.outfit,
           rating: rating,
+          feedbackReason: ratingFeedbackReason || null,
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        alert("Rating submitted successfully!");
+        showToast("Rating submitted successfully!");
 
         setShowRatingModal(false);
         setSelectedHistory(null);
         setRating(0);
+        setRatingFeedbackReason("");
         fetchHistory();
       } else {
-        alert(data.message);
+        showToast(data.message, "error");
       }
     } catch (error) {
       console.error(error);
-      alert("Something went wrong.");
+      showToast("Something went wrong.", "error");
     }
   }
 
@@ -372,12 +381,47 @@ function History() {
                 ))}
               </div>
 
+              {/* Optional Reason Step */}
+              <div className="mb-6">
+                <p className="mb-3 text-xs font-semibold text-gray-500">
+                  Any specific reason? (optional)
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: "Color mismatch", value: "COLOR_MISMATCH" },
+                    { label: "Style mismatch", value: "STYLE_MISMATCH" },
+                    { label: "Too formal", value: "TOO_FORMAL" },
+                    { label: "Too casual", value: "TOO_CASUAL" },
+                    { label: "Occasion mismatch", value: "OCCASION_MISMATCH" },
+                    { label: "Other", value: "OTHER" },
+                  ].map((chip) => (
+                    <button
+                      key={chip.value}
+                      type="button"
+                      onClick={() =>
+                        setRatingFeedbackReason((prev) =>
+                          prev === chip.value ? "" : chip.value,
+                        )
+                      }
+                      className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
+                        ratingFeedbackReason === chip.value
+                          ? "border-[#8B6F47] bg-[#8B6F47] text-white"
+                          : "border-gray-200 bg-[#FAF7F2] text-gray-600 hover:border-gray-300"
+                      }`}
+                    >
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => {
                     setShowRatingModal(false);
                     setRating(0);
                     setSelectedHistory(null);
+                    setRatingFeedbackReason("");
                   }}
                   className="rounded-xl border border-gray-300 px-5 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
                 >
@@ -396,6 +440,13 @@ function History() {
           </div>
         )}
       </div>
+      {toast && (
+        <Toast
+          message={toast.message}
+          variant={toast.variant}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

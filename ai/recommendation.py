@@ -139,6 +139,44 @@ def _apply_preference_boost(ranked_outfits, preferred_style, preferred_color):
     return boosted
 
 
+def _apply_disliked_penalties(ranked_outfits, disliked_colors, disliked_styles):
+    """
+    Applies penalties for disliked colors and styles to outfit scores.
+    """
+    if not disliked_colors and not disliked_styles:
+        return ranked_outfits
+
+    disliked_c_set = {c.lower() for c in disliked_colors if c}
+    disliked_s_set = {s.lower() for s in disliked_styles if s}
+
+    if not disliked_c_set and not disliked_s_set:
+        return ranked_outfits
+
+    penalized = []
+    for entry in ranked_outfits:
+        outfit = entry["outfit"]
+        score = entry["score"]
+        penalty = 0.0
+
+        for item in _iter_outfit_items(outfit):
+            item_colors = [c.lower() for c in item.get("colors", []) if c]
+            color_matches = sum(1 for c in item_colors if c in disliked_c_set)
+            penalty += 0.05 * color_matches
+
+            item_styles = [s.lower() for s in item.get("styles", []) if s]
+            style_matches = sum(1 for s in item_styles if s in disliked_s_set)
+            penalty += 0.05 * style_matches
+
+        final_score = max(0.0, round(score - penalty, 4))
+        penalized.append({
+            "outfit": outfit,
+            "score": final_score,
+        })
+
+    penalized.sort(key=lambda x: x["score"], reverse=True)
+    return penalized
+
+
 # ---------------------------------------------------------------------------
 # Main pipeline
 # ---------------------------------------------------------------------------
@@ -194,6 +232,12 @@ def recommend_outfits(wardrobe, weather, user_preferences, user_history):
         ranked_outfits,
         preferred_style=user_preferences.get("preferred_style", ""),
         preferred_color=user_preferences.get("preferred_color", ""),
+    )
+
+    ranked_outfits = _apply_disliked_penalties(
+        ranked_outfits,
+        disliked_colors=user_preferences.get("disliked_colors", []),
+        disliked_styles=user_preferences.get("disliked_styles", []),
     )
 
     return ranked_outfits

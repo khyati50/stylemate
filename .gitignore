@@ -21,7 +21,16 @@ ai/notebooks/.ipynb_checkpoints/
 
 # Environment files
 .env
+**/.env
 ai/.env
+
+# Logs
+*.log
+**/*.log
+
+# Backend uploads and caches
+stylemate-backend/uploads/
+stylemate-backend/data/
 
 # Temporary AI docs
 ai/docs/

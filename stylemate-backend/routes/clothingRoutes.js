@@ -6,6 +6,7 @@ const {
   getMyWardrobe,
   deleteClothingItem,
   updateClothingItem,
+  analyzeClothingImage,
 } = require("../controllers/clothingController");
 const router = express.Router();
 router.post(
@@ -13,6 +14,12 @@ router.post(
   authMiddleware,
   upload.single("image"),
   addClothingItem,
+);
+router.post(
+  "/analyze-image",
+  authMiddleware,
+  upload.single("image"),
+  analyzeClothingImage,
 );
 router.get("/my-wardrobe", authMiddleware, getMyWardrobe);
 router.delete("/:id", authMiddleware, deleteClothingItem);

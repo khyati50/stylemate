@@ -10,6 +10,9 @@ function ClothingModal({
 }) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [detectionBanner, setDetectionBanner] = useState(null);
+  const [detectionSuggestions, setDetectionSuggestions] = useState(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -22,11 +25,86 @@ function ClothingModal({
     if (formData.image instanceof File) {
       const objectUrl = URL.createObjectURL(formData.image);
       setImagePreview(objectUrl);
+      setDetectionBanner(null);
+      setDetectionSuggestions(null);
       return () => URL.revokeObjectURL(objectUrl);
     } else {
       setImagePreview(null);
     }
   }, [formData.image]);
+
+  async function handleAutoDetect() {
+    if (!formData.image || !(formData.image instanceof File)) {
+      return;
+    }
+
+    try {
+      setAnalyzing(true);
+      setDetectionBanner(null);
+      setDetectionSuggestions(null);
+
+      const token = localStorage.getItem("token");
+      const form = new FormData();
+      form.append("image", formData.image);
+
+      const response = await fetch("http://localhost:5000/api/clothing/analyze-image", {
+        method: "POST",
+        headers: {
+          authorization: token,
+        },
+        body: form,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server returned status ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      const colorsStr = Array.isArray(data.detected_colors)
+        ? data.detected_colors.join(", ")
+        : data.detected_colors || "";
+      const stylesStr = Array.isArray(data.suggested_styles)
+        ? data.suggested_styles.join(", ")
+        : data.suggested_styles || "";
+      const occasionsStr = Array.isArray(data.suggested_occasions)
+        ? data.suggested_occasions.join(", ")
+        : data.suggested_occasions || "";
+      const seasonsStr = Array.isArray(data.suggested_seasons)
+        ? data.suggested_seasons.join(", ")
+        : data.suggested_seasons || "";
+
+      if (data.auto_fill) {
+        setFormData((prev) => ({
+          ...prev,
+          name: prev.name?.trim()
+            ? prev.name
+            : data.detected_name || data.suggested_name || data.detected_item || prev.name,
+          category: data.detected_category || prev.category,
+          colors: colorsStr || prev.colors,
+          styles: stylesStr || prev.styles,
+          occasions: occasionsStr || prev.occasions,
+          seasons: seasonsStr || prev.seasons,
+        }));
+
+        const confidencePct = Math.round((data.confidence || 0.85) * 100);
+        setDetectionBanner(
+          `✨ Details auto-detected (${confidencePct}% confidence)! Please review and customize before saving.`
+        );
+      } else {
+        setDetectionSuggestions(data);
+        const itemName = data.detected_item || "item";
+        setDetectionBanner(
+          `Detected ${itemName} with moderate confidence. Review suggestions below.`
+        );
+      }
+    } catch (error) {
+      console.error("Auto-detect error:", error);
+      setDetectionBanner("Could not detect details automatically. Please fill in manually.");
+    } finally {
+      setAnalyzing(false);
+    }
+  }
 
   function handleClose() {
     setIsAnimating(false);
@@ -34,6 +112,7 @@ function ClothingModal({
       setShowModal(false);
     }, 300);
   }
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
@@ -100,20 +179,40 @@ function ClothingModal({
                   <p className="text-xs text-gray-600 font-medium truncate max-w-xs">
                     {formData.image.name}
                   </p>
-                  <label className="cursor-pointer text-xs font-semibold text-[#8B6F47] hover:underline">
-                    <span>Change Garment Image</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          image: e.target.files[0],
-                        })
-                      }
-                      className="hidden"
-                    />
-                  </label>
+                  <div className="flex flex-wrap items-center justify-center gap-3 mt-1">
+                    <label className="cursor-pointer text-xs font-semibold text-[#8B6F47] hover:underline">
+                      <span>Change Garment Image</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            image: e.target.files[0],
+                          })
+                        }
+                        className="hidden"
+                      />
+                    </label>
+
+                    {analyzing ? (
+                      <div className="flex items-center gap-2 rounded-full border border-[#8B6F47]/30 bg-[#8B6F47]/10 px-4 py-2 text-xs font-semibold text-[#8B6F47] animate-pulse shadow-xs">
+                        <svg className="animate-spin h-3.5 w-3.5 text-[#8B6F47]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                        <span>Analyzing garment with AI...</span>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleAutoDetect}
+                        className="flex items-center gap-1.5 rounded-full border border-[#8B6F47] bg-white px-4 py-2 text-xs font-semibold text-[#8B6F47] shadow-xs transition hover:bg-[#8B6F47] hover:text-white active:scale-95 cursor-pointer"
+                      >
+                        <span>✨ Auto-Detect Details</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <label className="flex cursor-pointer flex-col items-center justify-center py-4">
@@ -147,12 +246,40 @@ function ClothingModal({
                     className="hidden"
                   />
                 </label>
-
               )}
             </div>
           </div>
 
+          {/* AI Auto-Detection Feedback Banner */}
+          {detectionBanner && (
+            <div
+              className={`rounded-2xl p-4 text-xs font-medium flex items-center justify-between gap-3 shadow-xs transition-all ${
+                detectionBanner.includes("Could not")
+                  ? "bg-red-50 text-red-800 border border-red-200"
+                  : detectionBanner.includes("moderate")
+                  ? "bg-amber-50 text-amber-900 border border-amber-200"
+                  : "bg-[#FAF7F2] text-[#6B5335] border border-[#8B6F47]/30"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-base">
+                  {detectionBanner.startsWith("✨") ? "✨" : detectionBanner.includes("moderate") ? "💡" : "⚠️"}
+                </span>
+                <span>{detectionBanner}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDetectionBanner(null)}
+                className="text-gray-400 hover:text-gray-600 text-xs px-1 cursor-pointer"
+                aria-label="Dismiss banner"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           {/* Form Compartments */}
+
           <div className="grid gap-5 md:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#8B6F47]">
@@ -170,6 +297,21 @@ function ClothingModal({
                 }
                 className="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-[#2E2E2E] outline-none transition focus:border-[#8B6F47] focus:ring-2 focus:ring-[#8B6F47]/10"
               />
+              {detectionSuggestions?.suggested_name && !formData.name && (
+                <p className="mt-1.5 text-[11px] text-gray-500">
+                  Detected:{" "}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData((p) => ({ ...p, name: detectionSuggestions.suggested_name }))
+                    }
+                    className="text-[#8B6F47] font-semibold underline hover:text-[#705531] cursor-pointer"
+                  >
+                    {detectionSuggestions.suggested_name}
+                  </button>{" "}
+                  — click to accept or type your own
+                </p>
+              )}
             </div>
 
             <div>
@@ -194,6 +336,21 @@ function ClothingModal({
                 <option value="Outerwear">Outerwear</option>
                 <option value="Accessory">Accessory</option>
               </select>
+              {detectionSuggestions?.detected_category && !formData.category && (
+                <p className="mt-1.5 text-[11px] text-gray-500">
+                  Detected:{" "}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData((p) => ({ ...p, category: detectionSuggestions.detected_category }))
+                    }
+                    className="text-[#8B6F47] font-semibold underline hover:text-[#705531] cursor-pointer"
+                  >
+                    {detectionSuggestions.detected_category}
+                  </button>{" "}
+                  — click to accept
+                </p>
+              )}
             </div>
           </div>
 
@@ -214,6 +371,24 @@ function ClothingModal({
                 }
                 className="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-[#2E2E2E] outline-none transition focus:border-[#8B6F47] focus:ring-2 focus:ring-[#8B6F47]/10"
               />
+              {detectionSuggestions?.detected_colors?.length > 0 && !formData.colors && (
+                <p className="mt-1.5 text-[11px] text-gray-500">
+                  Detected:{" "}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData((p) => ({
+                        ...p,
+                        colors: detectionSuggestions.detected_colors.join(", "),
+                      }))
+                    }
+                    className="text-[#8B6F47] font-semibold underline hover:text-[#705531] cursor-pointer"
+                  >
+                    {detectionSuggestions.detected_colors.join(", ")}
+                  </button>{" "}
+                  — click to accept
+                </p>
+              )}
             </div>
 
             <div>
@@ -232,6 +407,24 @@ function ClothingModal({
                 }
                 className="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-[#2E2E2E] outline-none transition focus:border-[#8B6F47] focus:ring-2 focus:ring-[#8B6F47]/10"
               />
+              {detectionSuggestions?.suggested_styles?.length > 0 && !formData.styles && (
+                <p className="mt-1.5 text-[11px] text-gray-500">
+                  Suggested:{" "}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData((p) => ({
+                        ...p,
+                        styles: detectionSuggestions.suggested_styles.join(", "),
+                      }))
+                    }
+                    className="text-[#8B6F47] font-semibold underline hover:text-[#705531] cursor-pointer"
+                  >
+                    {detectionSuggestions.suggested_styles.join(", ")}
+                  </button>{" "}
+                  — click to accept
+                </p>
+              )}
             </div>
           </div>
 
@@ -252,6 +445,24 @@ function ClothingModal({
                 }
                 className="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-[#2E2E2E] outline-none transition focus:border-[#8B6F47] focus:ring-2 focus:ring-[#8B6F47]/10"
               />
+              {detectionSuggestions?.suggested_seasons?.length > 0 && !formData.seasons && (
+                <p className="mt-1.5 text-[11px] text-gray-500">
+                  Suggested:{" "}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData((p) => ({
+                        ...p,
+                        seasons: detectionSuggestions.suggested_seasons.join(", "),
+                      }))
+                    }
+                    className="text-[#8B6F47] font-semibold underline hover:text-[#705531] cursor-pointer"
+                  >
+                    {detectionSuggestions.suggested_seasons.join(", ")}
+                  </button>{" "}
+                  — click to accept
+                </p>
+              )}
             </div>
 
             <div>
@@ -270,6 +481,24 @@ function ClothingModal({
                 }
                 className="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-[#2E2E2E] outline-none transition focus:border-[#8B6F47] focus:ring-2 focus:ring-[#8B6F47]/10"
               />
+              {detectionSuggestions?.suggested_occasions?.length > 0 && !formData.occasions && (
+                <p className="mt-1.5 text-[11px] text-gray-500">
+                  Suggested:{" "}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData((p) => ({
+                        ...p,
+                        occasions: detectionSuggestions.suggested_occasions.join(", "),
+                      }))
+                    }
+                    className="text-[#8B6F47] font-semibold underline hover:text-[#705531] cursor-pointer"
+                  >
+                    {detectionSuggestions.suggested_occasions.join(", ")}
+                  </button>{" "}
+                  — click to accept
+                </p>
+              )}
             </div>
           </div>
         </div>

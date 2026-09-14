@@ -8,6 +8,12 @@ import Wardrobe from "./pages/Wardrobe";
 import Recommendation from "./pages/Recommendation";
 import PublicRoute from "./components/PublicRoute";
 import History from "./pages/History";
+import GapAnalysis from "./pages/GapAnalysis";
+import Preferences from "./pages/Preferences";
+import Twinning from "./pages/Twinning";
+import Chat from "./pages/Chat";
+import PackingCapsule from "./pages/PackingCapsule";
+import ShoppingAdvisor from "./pages/ShoppingAdvisor";
 
 function App() {
   return (
@@ -48,7 +54,13 @@ function App() {
         }
       />
 
-      <Route path="/history" element={<History />} />
+      <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+      <Route path="/gap-analysis" element={<ProtectedRoute><GapAnalysis /></ProtectedRoute>} />
+      <Route path="/preferences" element={<ProtectedRoute><Preferences /></ProtectedRoute>} />
+      <Route path="/twinning" element={<ProtectedRoute><Twinning /></ProtectedRoute>} />
+      <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+      <Route path="/capsule" element={<ProtectedRoute><PackingCapsule /></ProtectedRoute>} />
+      <Route path="/shopping" element={<ProtectedRoute><ShoppingAdvisor /></ProtectedRoute>} />
     </Routes>
   );
 }

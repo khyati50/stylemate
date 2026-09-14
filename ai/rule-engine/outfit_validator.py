@@ -278,6 +278,12 @@ def _validate_compatibility(outfit):
     5e. Sporty upper + formal lower → rejected
         Reason: Tracksuit top + formal trousers is incoherent.
 
+    5f. Ethnic core + Western formal outerwear → rejected
+        Reason: Kurta or Saree under a Western tailored suit blazer / coat.
+
+    5g. Ethnic upper/full body + external waist belt → rejected
+        Reason: External belt cannot be worn over ethnic upper garments.
+
     Returns:
         (bool, str)
     """
@@ -324,6 +330,19 @@ def _validate_compatibility(outfit):
     # Rule 5e: Sporty upper + formal lower (tracksuit top + dress trousers)
     if upper_class == "sporty" and lower_class == "formal":
         return False, "Sporty top cannot be paired with formal bottom"
+
+    # Rule 5f: Ethnic core + Western formal outerwear
+    # E.g. Kurta or Saree under a Western tailored suit blazer / coat
+    if core_is_ethnic and outer_class == "formal":
+        return False, "Ethnic garments cannot be worn with Western formal outerwear"
+
+    # Rule 5g: Ethnic upper/full body + external waist belt
+    if upper_class == "ethnic" or full_class == "ethnic":
+        accessories = outfit.get("accessories") or []
+        for acc in accessories:
+            acc_name = acc.get("name", "").lower()
+            if "belt" in acc_name:
+                return False, "External belt cannot be worn over ethnic upper garments"
 
     return True, None
 

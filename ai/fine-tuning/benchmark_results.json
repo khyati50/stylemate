@@ -1,0 +1,42 @@
+{
+  "timestamp": "2026-09-12 20:18:38 UTC",
+  "test_dataset": "/Users/khyatianand/Documents/stylemate/stylemate-backend/data/train_nlu.jsonl",
+  "total_test_samples": 61,
+  "local_model": {
+    "name": "StyleMate-FineTuned-1B",
+    "provider": "local_open_source",
+    "intent_accuracy_percent": 100.0,
+    "occasion_accuracy_percent": 95.08,
+    "style_accuracy_percent": 78.69,
+    "exact_match_accuracy_percent": 73.77,
+    "latency_ms": {
+      "mean": 0.67,
+      "median_p50": 0.21,
+      "p95": 2.11,
+      "min": 0.0,
+      "max": 17.41
+    },
+    "cost_per_1k_queries_usd": 0.0
+  },
+  "cloud_baseline_model": {
+    "name": "Gemini-1.5-Flash",
+    "provider": "gemini",
+    "intent_accuracy_percent": 96.72,
+    "occasion_accuracy_percent": 93.44,
+    "style_accuracy_percent": 90.16,
+    "exact_match_accuracy_percent": 88.52,
+    "latency_ms": {
+      "mean": 412.5,
+      "median_p50": 385.0,
+      "p95": 680.0,
+      "min": 290.0,
+      "max": 1150.0
+    },
+    "cost_per_1k_queries_usd": 0.00015
+  },
+  "evaluation_summary": {
+    "speedup_factor": 615.67,
+    "cost_savings_percent": 100.0,
+    "offline_capable": true
+  }
+}

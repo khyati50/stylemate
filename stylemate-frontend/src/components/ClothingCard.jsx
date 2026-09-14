@@ -10,7 +10,11 @@ function ClothingCard({ item, onDelete, onEdit, onSelect }) {
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#FAF7F2] flex items-center justify-center">
         {item.imageUrl ? (
           <img
-            src={`http://localhost:5000/${item.imageUrl}`}
+            src={
+              item.imageUrl.startsWith("http")
+                ? item.imageUrl
+                : `http://localhost:5000/${item.imageUrl}`
+            }
             alt={item.name}
             className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
           />

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import ClothingCard from "../components/ClothingCard";
 import ClothingModal from "../components/ClothingModal";
@@ -31,6 +31,7 @@ function Wardrobe() {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [selectedDetailItem, setSelectedDetailItem] = useState(null);
   const [formData, setFormData] = useState(initialFormData);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [filter, setFilter] = useState({
     category: "",
@@ -223,11 +224,29 @@ function Wardrobe() {
     return [...new Set(values)];
   }
 
+  /**
+   * Returns the most frequently occurring value from a flattened array field
+   * across all wardrobe items. Returns '—' when the wardrobe is empty.
+   */
+  function getMostFrequent(property) {
+    if (wardrobe.length === 0) return "—";
+    const values = wardrobe.flatMap((item) => item[property] || []);
+    if (values.length === 0) return "—";
+    const freq = values.reduce((acc, v) => {
+      acc[v] = (acc[v] || 0) + 1;
+      return acc;
+    }, {});
+    return Object.keys(freq).sort((a, b) => freq[b] - freq[a])[0];
+  }
+
   const uniqueCategories = getUniqueValues("category");
   const uniqueStyles = getUniqueValues("styles");
   const uniqueColour = getUniqueValues("colors");
   const uniqueSeasons = getUniqueValues("seasons");
   const uniqueOccasions = getUniqueValues("occasions");
+
+  const mostUsedColor = getMostFrequent("colors");
+  const mostUsedOccasion = getMostFrequent("occasions");
 
   const isFilterActive =
     filter.category !== "" ||
@@ -247,6 +266,10 @@ function Wardrobe() {
   };
 
   const filteredWardrobe = wardrobe.filter((item) => {
+    const nameMatch =
+      searchQuery === "" ||
+      item.name.toLowerCase().includes(searchQuery.toLowerCase());
+
     const categoryMatch =
       filter.category === "" || item.category === filter.category;
 
@@ -263,7 +286,12 @@ function Wardrobe() {
       filter.occasions === "" || item.occasions.includes(filter.occasions);
 
     return (
-      categoryMatch && styleMatch && colorMatch && seasonMatch && occasionMatch
+      nameMatch &&
+      categoryMatch &&
+      styleMatch &&
+      colorMatch &&
+      seasonMatch &&
+      occasionMatch
     );
   });
 
@@ -323,6 +351,24 @@ function Wardrobe() {
               </span>
               <span>Filtered Items</span>
             </div>
+
+            <div className="h-4 w-px bg-[#EAE5DD]" />
+
+            <div className="flex items-center gap-2">
+              <span className="font-['Playfair_Display'] text-xl sm:text-2xl font-bold text-[#2E2E2E] capitalize">
+                {mostUsedColor}
+              </span>
+              <span>Top Color</span>
+            </div>
+
+            <div className="h-4 w-px bg-[#EAE5DD]" />
+
+            <div className="flex items-center gap-2">
+              <span className="font-['Playfair_Display'] text-xl sm:text-2xl font-bold text-[#2E2E2E] capitalize">
+                {mostUsedOccasion}
+              </span>
+              <span>Top Occasion</span>
+            </div>
           </div>
         </div>
 
@@ -332,6 +378,27 @@ function Wardrobe() {
             {message}
           </div>
         )}
+
+        {/* Garment Search Bar */}
+        <div className="relative mb-6">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search garments by name..."
+            className="w-full rounded-2xl border border-[#EAE5DD] bg-white px-4 py-3 pr-10 text-xs sm:text-sm text-[#2E2E2E] placeholder-[#8C8277]/60 outline-none transition focus:border-[#8B6F47] shadow-xs"
+          />
+          {searchQuery !== "" && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-[#8C8277] hover:bg-[#FAF7F2] hover:text-[#2E2E2E] transition"
+              aria-label="Clear search"
+            >
+              ✕
+            </button>
+          )}
+        </div>
 
         {/* Mobile Filter Trigger Bar (Mobile Viewports) */}
         <div className="mb-6 flex items-center justify-between md:hidden bg-white p-4 rounded-2xl border border-[#EAE5DD] shadow-xs">

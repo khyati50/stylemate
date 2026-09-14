@@ -1,4 +1,5 @@
 const OutfitFeedback = require("../models/OutfitFeedback");
+const { computeUserPreferences } = require("../utils/preferenceEngine");
 
 const saveOutfitFeedback = async (req, res) => {
   try {
@@ -53,6 +54,8 @@ const saveOutfitFeedback = async (req, res) => {
       feedbackReason,
       feedbackDetails,
     });
+
+    computeUserPreferences(userId).catch(console.error);
 
     return res.status(201).json({
       message: "Feedback submitted successfully",

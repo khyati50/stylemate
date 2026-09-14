@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+import WeatherWidget from "./WeatherWidget";
 
 function AuthNavbar() {
   const location = useLocation();
@@ -22,12 +23,17 @@ function AuthNavbar() {
   return (
     <nav className="relative mb-6 md:mb-10 border-b border-[#EAE5DD] pb-4 md:pb-5">
       <div className="flex items-center justify-between">
-        <Link
-          to="/wardrobe"
-          className="font-['Playfair_Display'] text-2xl md:text-3xl font-bold text-[#2E2E2E]"
-        >
-          StyleMate
-        </Link>
+        <div className="flex items-center gap-3 lg:gap-6">
+          <Link
+            to="/wardrobe"
+            className="font-['Playfair_Display'] text-2xl md:text-3xl font-bold text-[#2E2E2E]"
+          >
+            StyleMate
+          </Link>
+          <div className="hidden md:block">
+            <WeatherWidget />
+          </div>
+        </div>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8 text-sm">
@@ -39,8 +45,32 @@ function AuthNavbar() {
             Recommendations
           </Link>
 
+          <Link to="/chat" className={navLinkClass("/chat")}>
+            Assistant
+          </Link>
+
           <Link to="/history" className={navLinkClass("/history")}>
             History
+          </Link>
+
+          <Link to="/gap-analysis" className={navLinkClass("/gap-analysis")}>
+            Analysis
+          </Link>
+
+          <Link to="/shopping" className={navLinkClass("/shopping")}>
+            Shopping
+          </Link>
+
+          <Link to="/preferences" className={navLinkClass("/preferences")}>
+            Preferences
+          </Link>
+
+          <Link to="/twinning" className={navLinkClass("/twinning")}>
+            Twin
+          </Link>
+
+          <Link to="/capsule" className={navLinkClass("/capsule")}>
+            Travel Capsule
           </Link>
 
           <button
@@ -64,6 +94,10 @@ function AuthNavbar() {
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="mt-4 rounded-2xl border border-[#EAE5DD] bg-white p-4 shadow-lg md:hidden flex flex-col space-y-3">
+          <div className="pb-3 border-b border-[#EAE5DD] flex justify-center">
+            <WeatherWidget />
+          </div>
+
           <Link
             to="/wardrobe"
             onClick={() => setMobileMenuOpen(false)}
@@ -89,6 +123,18 @@ function AuthNavbar() {
           </Link>
 
           <Link
+            to="/chat"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`py-2 px-3 rounded-xl text-sm font-medium ${
+              location.pathname === "/chat"
+                ? "bg-[#8B6F47]/10 text-[#8B6F47]"
+                : "text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            Assistant
+          </Link>
+
+          <Link
             to="/history"
             onClick={() => setMobileMenuOpen(false)}
             className={`py-2 px-3 rounded-xl text-sm font-medium ${
@@ -98,6 +144,66 @@ function AuthNavbar() {
             }`}
           >
             History
+          </Link>
+
+          <Link
+            to="/gap-analysis"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`py-2 px-3 rounded-xl text-sm font-medium ${
+              location.pathname === "/gap-analysis"
+                ? "bg-[#8B6F47]/10 text-[#8B6F47]"
+                : "text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            Analysis
+          </Link>
+
+          <Link
+            to="/shopping"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`py-2 px-3 rounded-xl text-sm font-medium ${
+              location.pathname === "/shopping"
+                ? "bg-[#8B6F47]/10 text-[#8B6F47]"
+                : "text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            Shopping
+          </Link>
+
+          <Link
+            to="/preferences"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`py-2 px-3 rounded-xl text-sm font-medium ${
+              location.pathname === "/preferences"
+                ? "bg-[#8B6F47]/10 text-[#8B6F47]"
+                : "text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            Preferences
+          </Link>
+
+          <Link
+            to="/twinning"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`py-2 px-3 rounded-xl text-sm font-medium ${
+              location.pathname === "/twinning"
+                ? "bg-[#8B6F47]/10 text-[#8B6F47]"
+                : "text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            Twin
+          </Link>
+
+          <Link
+            to="/capsule"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`py-2 px-3 rounded-xl text-sm font-medium ${
+              location.pathname === "/capsule"
+                ? "bg-[#8B6F47]/10 text-[#8B6F47]"
+                : "text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            Travel Capsule
           </Link>
 
           <button

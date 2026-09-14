@@ -62,7 +62,7 @@ STYLE_COMPATIBILITY = {
     frozenset({"casual",     "formal"}):     0.5,
     frozenset({"casual",     "sporty"}):     0.5,
     frozenset({"formal",     "formal"}):     1.0,
-    frozenset({"formal",     "ethnic"}):     0.5,
+    frozenset({"formal",     "ethnic"}):     0.1,
     frozenset({"formal",     "streetwear"}): 0.25,
     frozenset({"formal",     "sporty"}):     0.0,
     frozenset({"streetwear", "streetwear"}): 1.0,

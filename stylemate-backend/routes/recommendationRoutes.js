@@ -7,4 +7,5 @@ const {
 const router = express.Router();
 router.get("/filters", authMiddleware, getRecommendationFilters);
 router.post("/recommend", authMiddleware, recommendOutfit);
+router.post("/", authMiddleware, recommendOutfit);
 module.exports = router;

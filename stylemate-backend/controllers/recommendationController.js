@@ -1,74 +1,7 @@
-const path = require("path");
-const fs = require("fs");
-const { spawn } = require("child_process");
 const ClothingItem = require("../models/ClothingItem");
-
-const AI_DIR = path.resolve(__dirname, "../../ai");
-const SCRIPT_PATH = path.join(AI_DIR, "recommendation.py");
-const VENV_PYTHON = path.join(AI_DIR, "venv/bin/python");
-const PYTHON_CMD = fs.existsSync(VENV_PYTHON) ? VENV_PYTHON : "python3";
-
-/**
- * Spawns the Python recommendation pipeline and communicates via stdin/stdout.
- * @param {Object} inputData - { wardrobe, weather, user_preferences, user_history }
- * @returns {Promise<Array>} Ranked outfit recommendations from Python
- */
-const runPythonRecommendation = (inputData) => {
-  return new Promise((resolve, reject) => {
-    const pythonProcess = spawn(PYTHON_CMD, [SCRIPT_PATH], {
-      cwd: AI_DIR,
-    });
-
-    let stdoutData = "";
-    let stderrData = "";
-
-    pythonProcess.stdout.on("data", (data) => {
-      stdoutData += data.toString();
-    });
-
-    pythonProcess.stderr.on("data", (data) => {
-      stderrData += data.toString();
-    });
-
-    pythonProcess.on("close", (code) => {
-      console.log("STDOUT:");
-      console.log(stdoutData);
-
-      console.log("STDERR:");
-      console.log(stderrData);
-      if (code !== 0) {
-        let errorMessage = `Python process exited with code ${code}`;
-        try {
-          if (stdoutData.trim()) {
-            const parsedError = JSON.parse(stdoutData);
-            if (parsedError && parsedError.error) {
-              errorMessage = parsedError.error;
-            }
-          }
-        } catch (_) {
-          if (stderrData.trim()) {
-            errorMessage = stderrData.trim();
-          }
-        }
-        return reject(new Error(errorMessage));
-      }
-
-      try {
-        const result = JSON.parse(stdoutData);
-        resolve(result);
-      } catch (err) {
-        reject(new Error(`Failed to parse Python output: ${err.message}`));
-      }
-    });
-
-    pythonProcess.on("error", (err) => {
-      reject(new Error(`Failed to start Python process: ${err.message}`));
-    });
-
-    pythonProcess.stdin.write(JSON.stringify(inputData));
-    pythonProcess.stdin.end();
-  });
-};
+const UserPreferences = require("../models/UserPreferences");
+const { computeUserPreferences } = require("../utils/preferenceEngine");
+const { runPythonRecommendation } = require("../utils/pythonRunner");
 
 const recommendOutfit = async (req, res) => {
   try {
@@ -84,8 +17,7 @@ const recommendOutfit = async (req, res) => {
     const userId = req.user.id;
 
     const wardrobeModels = await ClothingItem.findAll({
-      where: { userId },
-      status: "available",
+      where: { userId, status: 'available' },
     });
 
     const wardrobe = wardrobeModels.map((item) => item.toJSON());
@@ -94,6 +26,16 @@ const recommendOutfit = async (req, res) => {
       return res.status(404).json({
         message: "Your wardrobe is empty. Add some clothes first.",
       });
+    }
+
+    let userPrefs = await UserPreferences.findOne({ where: { userId } });
+    const ONE_HOUR = 60 * 60 * 1000;
+    if (
+      !userPrefs ||
+      !userPrefs.lastComputedAt ||
+      Date.now() - new Date(userPrefs.lastComputedAt).getTime() > ONE_HOUR
+    ) {
+      userPrefs = await computeUserPreferences(userId);
     }
 
     const inputData = {
@@ -105,18 +47,16 @@ const recommendOutfit = async (req, res) => {
       },
       user_preferences: user_preferences || {
         occasion: occasion || "casual",
-        preferred_style: style,
-        preferred_color: color,
+        preferred_style: style || userPrefs?.favoriteStyles?.[0] || "",
+        preferred_color: color || userPrefs?.favoriteColors?.[0] || "",
+        disliked_colors: userPrefs?.dislikedColors || [],
+        disliked_styles: userPrefs?.dislikedStyles || [],
       },
-
-      //       TODO:
-      // Replace these defaults with real user interaction history
-      //  after Outfit History & Feedback module is implemented.
       user_history: user_history || {
-        average_rating: 4.0,
-        times_worn: 0,
+        average_rating: userPrefs?.averageRating || 4.0,
+        times_worn: userPrefs?.totalOutfitsWorn || 0,
         days_since_last_worn: 30,
-        accepted_before: false,
+        accepted_before: (userPrefs?.totalOutfitsWorn || 0) > 0,
       },
     };
 
