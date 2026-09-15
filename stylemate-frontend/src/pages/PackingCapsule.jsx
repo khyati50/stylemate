@@ -469,6 +469,7 @@ export default function PackingCapsule() {
   // Delete a Saved Trip
   const handleDeleteTrip = async (tripId, e) => {
     e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this saved travel capsule?")) return;
     try {
       const res = await fetch(`http://localhost:5000/api/capsule/${tripId}`, {
         method: "DELETE",

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Shirt,
@@ -56,6 +57,7 @@ function AuthNavbar() {
   const navigate = useNavigate();
   const [toolsOpen, setToolsOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const dropdownRef = useRef(null);
   const timeoutRef = useRef(null);
 
@@ -63,8 +65,9 @@ function AuthNavbar() {
     (tool) => location.pathname === tool.to
   );
 
-  function handleLogout() {
+  function confirmLogout() {
     localStorage.removeItem("token");
+    setShowLogoutModal(false);
     navigate("/login");
   }
 
@@ -88,6 +91,7 @@ function AuthNavbar() {
       if (e.key === "Escape") {
         setToolsOpen(false);
         setMobileMenuOpen(false);
+        setShowLogoutModal(false);
       }
     }
     window.addEventListener("keydown", handleKeyDown);
@@ -283,7 +287,7 @@ function AuthNavbar() {
             <div className="group relative flex items-center">
               <button
                 type="button"
-                onClick={handleLogout}
+                onClick={() => setShowLogoutModal(true)}
                 className="p-2 rounded-xl text-[#6E655F] hover:text-rose-700 hover:bg-rose-50/80 border border-transparent hover:border-rose-200/60 transition-all duration-200 cursor-pointer"
                 aria-label="Sign out"
               >
@@ -426,7 +430,7 @@ function AuthNavbar() {
                 type="button"
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  handleLogout();
+                  setShowLogoutModal(true);
                 }}
                 className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-semibold text-rose-700 bg-rose-50/60 hover:bg-rose-100/70 border border-rose-200/50 transition cursor-pointer"
               >
@@ -437,6 +441,67 @@ function AuthNavbar() {
           </div>
         )}
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+            onClick={() => setShowLogoutModal(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="logout-dialog-title"
+          >
+            <div
+              className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-[#EAE5DD] animate-in zoom-in-95 duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header with a warm bronze LogOut icon badge */}
+              <div className="flex items-center gap-3.5 mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-[#8B6F47]/10 text-[#8B6F47] border border-[#8B6F47]/20 flex items-center justify-center shrink-0">
+                  <LogOut size={22} />
+                </div>
+                <div>
+                  <h3
+                    id="logout-dialog-title"
+                    className="font-['Playfair_Display'] text-xl font-bold text-[#1A1918]"
+                  >
+                    Sign Out of StyleMate?
+                  </h3>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#96784E]">
+                    Session Confirmation
+                  </span>
+                </div>
+              </div>
+
+              {/* Body */}
+              <p className="text-xs sm:text-sm text-gray-600 leading-relaxed mb-6">
+                Are you sure you want to end your styling session? Your wardrobe
+                items, preferences, and saved outfits are securely synced.
+              </p>
+
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#EAE5DD]/80">
+                <button
+                  type="button"
+                  onClick={() => setShowLogoutModal(false)}
+                  className="px-5 py-2.5 rounded-xl border border-[#EAE5DD] text-gray-600 hover:bg-[#FAF7F2] font-semibold text-xs transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmLogout}
+                  className="px-5 py-2.5 rounded-xl bg-[#8B6F47] hover:bg-[#735A37] text-white font-semibold text-xs flex items-center gap-1.5 shadow-md transition cursor-pointer"
+                >
+                  <LogOut size={14} />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </header>
   );
 }

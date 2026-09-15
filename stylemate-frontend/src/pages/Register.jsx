@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Mail, Lock } from "lucide-react";
+import { User, Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react";
 import registerHero from "../assets/registerHero.png";
 
 function Register() {
@@ -13,15 +13,21 @@ function Register() {
     confirmPassword: "",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
   async function HandleRegister() {
-    try {
-      if (formData.password !== formData.confirmPassword) {
-        setMessage("Passwords do not match");
-        return;
-      }
+    if (loading) return;
 
+    if (formData.password !== formData.confirmPassword) {
+      setMessage("Passwords do not match");
+      return;
+    }
+
+    try {
+      setLoading(true);
       setMessage("");
 
       const response = await fetch("http://localhost:5000/api/auth/register", {
@@ -38,14 +44,17 @@ function Register() {
 
       const data = await response.json();
 
-      setMessage(data.message);
-
       if (response.ok) {
-        navigate("/login");
+        navigate("/login?registered=true");
+        return;
       }
+
+      setMessage(data.message || "Registration failed. Please try again.");
     } catch (error) {
       console.error(error);
       setMessage("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -73,18 +82,24 @@ function Register() {
               recommendations for every occasion.
             </p>
 
-            <div className="mt-5 sm:mt-8 space-y-3 sm:space-y-5">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                HandleRegister();
+              }}
+              className="mt-5 sm:mt-8 space-y-3 sm:space-y-5"
+            >
               {/* Username */}
-
               <div className="relative">
                 <User
                   size={18}
-                  className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                 />
 
                 <input
                   type="text"
                   placeholder="Username"
+                  required
                   value={formData.username}
                   onChange={(event) =>
                     setFormData({
@@ -97,16 +112,16 @@ function Register() {
               </div>
 
               {/* Email */}
-
               <div className="relative">
                 <Mail
                   size={18}
-                  className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                 />
 
                 <input
                   type="email"
                   placeholder="Email Address"
+                  required
                   value={formData.email}
                   onChange={(event) =>
                     setFormData({
@@ -119,16 +134,16 @@ function Register() {
               </div>
 
               {/* Password */}
-
               <div className="relative">
                 <Lock
                   size={18}
-                  className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                 />
 
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Password"
+                  required
                   value={formData.password}
                   onChange={(event) =>
                     setFormData({
@@ -136,21 +151,30 @@ function Register() {
                       password: event.target.value,
                     })
                   }
-                  className="w-full rounded-xl border border-gray-300 py-3 sm:py-4 pl-11 sm:pl-14 pr-4 text-sm sm:text-base outline-none focus:border-[#8B6F47] transition"
+                  className="w-full rounded-xl border border-gray-300 py-3 sm:py-4 pl-11 sm:pl-14 pr-12 text-sm sm:text-base outline-none focus:border-[#8B6F47] transition"
                 />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3.5 sm:right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition p-1 cursor-pointer"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
 
               {/* Confirm Password */}
-
               <div className="relative">
                 <Lock
                   size={18}
-                  className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                 />
 
                 <input
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm Password"
+                  required
                   value={formData.confirmPassword}
                   onChange={(event) =>
                     setFormData({
@@ -158,19 +182,41 @@ function Register() {
                       confirmPassword: event.target.value,
                     })
                   }
-                  className="w-full rounded-xl border border-gray-300 py-3 sm:py-4 pl-11 sm:pl-14 pr-4 text-sm sm:text-base outline-none focus:border-[#8B6F47] transition"
+                  className="w-full rounded-xl border border-gray-300 py-3 sm:py-4 pl-11 sm:pl-14 pr-12 text-sm sm:text-base outline-none focus:border-[#8B6F47] transition"
                 />
+
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute right-3.5 sm:right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition p-1 cursor-pointer"
+                  aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
 
-              {message && <p className="text-xs sm:text-sm text-red-500">{message}</p>}
+              {message && (
+                <div className="flex items-center gap-2 text-red-500 text-xs sm:text-sm">
+                  <AlertCircle size={15} className="shrink-0" />
+                  <span>{message}</span>
+                </div>
+              )}
 
               <button
-                onClick={HandleRegister}
-                className="w-full rounded-xl bg-[#8B6F47] py-3 sm:py-4 text-sm sm:text-base text-white font-semibold hover:bg-[#735A37] hover:shadow-lg transition-all duration-300"
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-xl bg-[#8B6F47] py-3 sm:py-4 text-sm sm:text-base text-white font-semibold hover:bg-[#735A37] hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-md"
               >
-                Create Account
+                {loading ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    <span>Creating account...</span>
+                  </>
+                ) : (
+                  <span>Create Account</span>
+                )}
               </button>
-            </div>
+            </form>
 
             <p className="mt-5 sm:mt-8 text-center text-xs sm:text-base text-gray-600">
               Already have an account?{" "}
