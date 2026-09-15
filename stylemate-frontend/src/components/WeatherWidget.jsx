@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { Search, X, ChevronDown, MapPin } from "lucide-react";
 
@@ -209,15 +210,19 @@ function WeatherWidget() {
         )}
       </button>
 
-      {/* Expanded Weather Drawer / Modal */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4 md:p-6 animate-in fade-in duration-200">
+      {/* Expanded Weather Drawer / Modal via Portal to escape parent backdrop-filter */}
+      {isOpen &&
+        createPortal(
           <div
-            className="relative flex flex-col w-full max-w-4xl max-h-[92vh] rounded-3xl bg-[#FAF7F2] border border-[#EAE5DD] shadow-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200"
+            onClick={() => setIsOpen(false)}
           >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-[#EAE5DD] px-6 py-4 bg-white/70">
+            <div
+              className="relative flex flex-col w-full max-w-4xl max-h-[88vh] rounded-3xl bg-[#FAF7F2] border border-[#EAE5DD] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] overflow-hidden my-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b border-[#EAE5DD] px-6 py-4 bg-white/80 shrink-0">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#8B6F47]/10 text-xl text-[#8B6F47]">
                   🌤️
@@ -453,7 +458,8 @@ function WeatherWidget() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
