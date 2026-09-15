@@ -1,6 +1,7 @@
 import AuthNavbar from "../components/AuthNavbar";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { BookOpen } from "lucide-react";
 import OutfitCard from "../components/OutfitCard";
 import Toast from "../components/Toast";
 
@@ -105,25 +106,32 @@ function History() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] px-4 sm:px-6 py-6 md:py-12 text-[#2E2E2E]">
-      <div className="mx-auto max-w-6xl">
+    <div className="min-h-screen bg-[#FAF7F2] text-[#2E2E2E]">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 md:py-10">
         <AuthNavbar />
 
-        {/* Editorial Journal Header */}
-        <div className="mb-8 md:mb-12 border-b border-[#EAE5DD] pb-6 md:pb-8 pt-2 md:pt-4">
-          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        {/* Standardized Editorial Header */}
+        <div className="mb-8 border-b border-[#EAE5DD]/80 pb-6 pt-2">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <span className="mb-1.5 md:mb-2 text-[10px] md:text-xs font-bold uppercase tracking-[0.25em] text-[#8B6F47]">
-                Styling Archive
-              </span>
-              <h1 className="font-['Playfair_Display'] text-3xl sm:text-4xl font-bold tracking-tight text-[#2E2E2E] md:text-6xl">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-[#8B6F47]/10 px-3 py-0.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#8B6F47] mb-2">
+                <BookOpen size={12} />
+                <span>✦ Styling Archive</span>
+              </div>
+              <h1 className="font-['Playfair_Display'] text-3xl sm:text-4xl font-bold tracking-tight text-[#2E2E2E]">
                 Outfit Journal
               </h1>
+              <p className="mt-1.5 text-xs sm:text-sm text-[#8C8277] max-w-xl">
+                A curated log of worn ensembles. Rate previous recommendations to continuously refine your personal style profile.
+              </p>
             </div>
 
-            <p className="max-w-md text-xs sm:text-sm leading-relaxed text-gray-600">
-              A curated log of worn ensembles. Rate previous recommendations to continuously refine your personal style profile.
-            </p>
+            <div className="flex items-center gap-2.5">
+              <div className="inline-flex items-center gap-2 rounded-2xl bg-white border border-[#EAE5DD] px-4 py-2 text-xs font-semibold text-[#8B6F47] shadow-2xs">
+                <span>Total Recorded:</span>
+                <span className="font-['Playfair_Display'] text-sm font-bold text-[#2E2E2E]">{history.length}</span>
+              </div>
+            </div>
           </div>
         </div>
 

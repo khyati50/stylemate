@@ -2,8 +2,26 @@
 
 @import "tailwindcss";
 
+html,
 body {
   font-family: "Poppins", sans-serif;
   background: #faf7f2;
-  color: #2e2e2e;
+  color: #1a1918;
+  overflow-x: hidden;
+}
+
+/* Subtle luxury custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #e0d9ce;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #96784e;
 }

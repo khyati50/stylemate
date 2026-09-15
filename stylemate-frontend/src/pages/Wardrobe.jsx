@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Shirt, Plus, Search, X } from "lucide-react";
 
 import ClothingCard from "../components/ClothingCard";
 import ClothingModal from "../components/ClothingModal";
@@ -296,31 +297,36 @@ function Wardrobe() {
   });
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] px-4 sm:px-6 py-6 md:py-12 text-[#2E2E2E]">
-      <div className="mx-auto max-w-6xl">
+    <div className="min-h-screen bg-[#FAF7F2] text-[#2E2E2E]">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 md:py-10">
         <AuthNavbar />
 
-        {/* Editorial Collection Header */}
-        <div className="mb-8 border-b border-[#EAE5DD] pb-6 pt-2 md:mb-12 md:pb-8 md:pt-4">
-          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        {/* Standardized Editorial Collection Header */}
+        <div className="mb-8 border-b border-[#EAE5DD]/80 pb-6 pt-2">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <span className="mb-1.5 text-[10px] md:text-xs font-bold uppercase tracking-[0.25em] text-[#8B6F47]">
-                Personal Closet
-              </span>
-              <h1 className="font-['Playfair_Display'] text-3xl sm:text-4xl font-bold tracking-tight text-[#2E2E2E] md:text-6xl">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-[#8B6F47]/10 px-3 py-0.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#8B6F47] mb-2">
+                <Shirt size={12} />
+                <span>✦ Personal Collection</span>
+              </div>
+              <h1 className="font-['Playfair_Display'] text-3xl sm:text-4xl font-bold tracking-tight text-[#2E2E2E]">
                 My Wardrobe
               </h1>
+              <p className="mt-1.5 text-xs sm:text-sm text-[#8C8277] max-w-xl">
+                Organize, browse, and curate every piece in your personal collection with AI intelligence.
+              </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <button
                 onClick={() => {
                   resetForm();
                   setShowModal(true);
                 }}
-                className="inline-flex items-center gap-2 rounded-2xl bg-[#8B6F47] px-5 py-3 md:px-7 md:py-3.5 text-[11px] md:text-xs font-bold uppercase tracking-[0.18em] text-white shadow-md transition-all hover:bg-[#725a39] active:scale-[0.99]"
+                className="inline-flex items-center gap-2 rounded-2xl bg-[#8B6F47] px-5 py-2.5 md:px-6 md:py-3 text-xs font-bold tracking-wide text-white shadow-sm transition-all hover:bg-[#725a39] active:scale-[0.98] cursor-pointer"
               >
-                <span>+ Add New Item</span>
+                <Plus size={16} />
+                <span>Add Garment</span>
               </button>
             </div>
           </div>
@@ -381,21 +387,24 @@ function Wardrobe() {
 
         {/* Garment Search Bar */}
         <div className="relative mb-6">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
+            <Search size={16} />
+          </div>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search garments by name..."
-            className="w-full rounded-2xl border border-[#EAE5DD] bg-white px-4 py-3 pr-10 text-xs sm:text-sm text-[#2E2E2E] placeholder-[#8C8277]/60 outline-none transition focus:border-[#8B6F47] shadow-xs"
+            placeholder="Search garments by name, style, or color..."
+            className="w-full rounded-2xl border border-[#EAE5DD] bg-white py-3 pl-11 pr-10 text-xs sm:text-sm text-[#2E2E2E] placeholder-[#8C8277]/60 outline-none transition focus:border-[#8B6F47] focus:ring-4 focus:ring-[#8B6F47]/10 shadow-xs"
           />
           {searchQuery !== "" && (
             <button
               type="button"
               onClick={() => setSearchQuery("")}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-[#8C8277] hover:bg-[#FAF7F2] hover:text-[#2E2E2E] transition"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-[#8C8277] hover:bg-[#FAF7F2] hover:text-[#2E2E2E] transition cursor-pointer"
               aria-label="Clear search"
             >
-              ✕
+              <X size={14} />
             </button>
           )}
         </div>

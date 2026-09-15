@@ -505,32 +505,35 @@ export default function PackingCapsule() {
 
   return (
     <div className="min-h-screen bg-[#FAF7F2] text-[#2E2E2E]">
-      <div className="mx-auto max-w-6xl px-4 py-6 md:px-8 md:py-10">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 md:py-10">
         <AuthNavbar />
 
-        {/* Page Header */}
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-[#EAE5DD] pb-6">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#8B6F47]/10 text-[#8B6F47]">
-                <Luggage size={20} />
-              </span>
-              <h1 className="font-['Playfair_Display'] text-3xl md:text-4xl font-bold tracking-tight text-[#2E2E2E]">
+        {/* Standardized Editorial Header */}
+        <div className="mb-8 border-b border-[#EAE5DD]/80 pb-6 pt-2">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-[#8B6F47]/10 px-3 py-0.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#8B6F47] mb-2">
+                <Luggage size={12} />
+                <span>✦ Travel Capsule</span>
+              </div>
+              <h1 className="font-['Playfair_Display'] text-3xl sm:text-4xl font-bold tracking-tight text-[#2E2E2E]">
                 Travel Packing Capsule
               </h1>
+              <p className="mt-1.5 text-xs sm:text-sm text-[#8C8277] max-w-xl">
+                Pack lighter, dress sharper. AI-curated travel capsules and daily looks from your wardrobe.
+              </p>
             </div>
-            <p className="mt-2 text-sm text-gray-600">
-              Pack lighter, dress sharper. AI-curated travel capsules and daily looks from your wardrobe.
-            </p>
-          </div>
 
-          <button
-            onClick={() => setShowSavedTripsModal(true)}
-            className="flex items-center gap-2 self-start sm:self-auto rounded-xl border border-[#8B6F47] bg-white px-4 py-2.5 text-sm font-medium text-[#8B6F47] shadow-xs transition hover:bg-[#8B6F47] hover:text-white"
-          >
-            <Bookmark size={16} />
-            <span>Saved Trips ({savedTrips.length})</span>
-          </button>
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => setShowSavedTripsModal(true)}
+                className="inline-flex items-center gap-2 rounded-2xl border border-[#8B6F47]/40 bg-white px-4 py-2.5 text-xs font-semibold text-[#8B6F47] shadow-2xs transition hover:bg-[#8B6F47] hover:text-white cursor-pointer"
+              >
+                <Bookmark size={15} />
+                <span>Saved Trips ({savedTrips.length})</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Trip Configuration Card */}

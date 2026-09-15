@@ -3,23 +3,22 @@ import { useNavigate, Link } from "react-router-dom";
 import {
   Sparkles,
   Check,
-  ExternalLink,
-  ShieldCheck,
   ShoppingBag,
   Leaf,
   Layers,
   ArrowRight,
-  Info,
+  Footprints,
+  Tag,
 } from "lucide-react";
 import AuthNavbar from "../components/AuthNavbar";
 import Toast from "../components/Toast";
 
 const FILTER_PILLS = [
-  { id: "all", label: "All Recommendations" },
-  { id: "staples", label: "Staples & Basics" },
-  { id: "layers", label: "Blazers & Layers" },
-  { id: "shoes", label: "Footwear & Shoes" },
-  { id: "occasions", label: "Occasion Solvers" },
+  { id: "all", label: "All Picks", icon: Sparkles },
+  { id: "staples", label: "Staples & Basics", icon: Tag },
+  { id: "layers", label: "Blazers & Layers", icon: Layers },
+  { id: "shoes", label: "Footwear & Shoes", icon: Footprints },
+  { id: "occasions", label: "Occasion Solvers", icon: Sparkles },
 ];
 
 function ShoppingAdvisor() {
@@ -148,38 +147,43 @@ function ShoppingAdvisor() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2]">
-      <div className="mx-auto max-w-6xl px-4 py-8 md:py-12">
+    <div className="min-h-screen bg-[#FAF7F2] text-[#2E2E2E]">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 md:py-10">
         <AuthNavbar />
 
-        {/* Hero Page Header */}
-        <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-[#EAE5DD] pb-6">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#8B6F47]/10 px-3.5 py-1 text-xs font-semibold text-[#8B6F47] mb-3">
-              <ShoppingBag size={14} />
-              Wardrobe Gap Multiplier
+        {/* Standardized Editorial Header */}
+        <div className="mb-8 border-b border-[#EAE5DD]/80 pb-6 pt-2">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-[#8B6F47]/10 px-3 py-0.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#8B6F47] mb-2">
+                <ShoppingBag size={12} />
+                <span>✦ Smart Shopping Advisor</span>
+              </div>
+              <h1 className="font-['Playfair_Display'] text-3xl sm:text-4xl font-bold tracking-tight text-[#2E2E2E]">
+                Smart Shopping Advisor
+              </h1>
+              <p className="mt-1.5 text-xs sm:text-sm text-[#8C8277] max-w-xl">
+                Personalized picks to fill your wardrobe gaps — real products, real links from Google Shopping.
+              </p>
             </div>
-            <h1 className="font-['Playfair_Display'] text-3xl md:text-4xl font-bold text-[#2E2E2E]">
-              Smart Shopping Advisor
-            </h1>
-            <p className="mt-2 text-sm md:text-base text-gray-600 max-w-2xl">
-              Personalized picks to fill your wardrobe gaps — real products, real links from Google Shopping.
-            </p>
-          </div>
 
-          <Link
-            to="/gap-analysis"
-            className="inline-flex items-center gap-1.5 self-start md:self-auto text-xs font-semibold text-[#8B6F47] hover:underline"
-          >
-            View Wardrobe Gap Analysis <ArrowRight size={14} />
-          </Link>
+            <div className="flex items-center gap-2.5">
+              <Link
+                to="/gap-analysis"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-[#8B6F47]/30 bg-white px-3.5 py-2 text-xs font-semibold text-[#8B6F47] hover:bg-[#8B6F47] hover:text-white transition shadow-2xs"
+              >
+                <span>Wardrobe Audit</span>
+                <ArrowRight size={13} />
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* Luxury Gender / Collection Switcher */}
         <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-[#EAE5DD]/50 border border-[#EAE5DD] w-fit mb-6 shadow-xs">
           <button
             onClick={() => setSelectedGender("women")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
               selectedGender === "women"
                 ? "bg-[#8B6F47] text-white shadow-sm"
                 : "text-gray-600 hover:text-[#8B6F47]"
@@ -189,7 +193,7 @@ function ShoppingAdvisor() {
           </button>
           <button
             onClick={() => setSelectedGender("men")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
               selectedGender === "men"
                 ? "bg-[#8B6F47] text-white shadow-sm"
                 : "text-gray-600 hover:text-[#8B6F47]"
@@ -201,21 +205,23 @@ function ShoppingAdvisor() {
 
         {/* Filter Controls & Quality Switch */}
         <div className="mb-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white p-4 rounded-2xl border border-[#EAE5DD] shadow-sm">
-          {/* Category Pills — client-side filter only */}
+          {/* Category Pills with Icons */}
           <div className="flex flex-wrap gap-2 items-center">
             {FILTER_PILLS.map((pill) => {
               const isActive = activeFilter === pill.id;
+              const Icon = pill.icon;
               return (
                 <button
                   key={pill.id}
                   onClick={() => setActiveFilter(pill.id)}
-                  className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all ${
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
                     isActive
                       ? "bg-[#8B6F47] text-white shadow-sm"
                       : "bg-[#FAF7F2] text-[#2E2E2E] hover:bg-[#EAE5DD]/60 border border-[#EAE5DD]"
                   }`}
                 >
-                  {pill.label}
+                  <Icon size={13} />
+                  <span>{pill.label}</span>
                 </button>
               );
             })}

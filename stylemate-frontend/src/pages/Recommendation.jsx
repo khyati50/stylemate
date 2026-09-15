@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { Sparkles } from "lucide-react";
 import AuthNavbar from "../components/AuthNavbar";
 import OutfitCard from "../components/OutfitCard";
 import Toast from "../components/Toast";
@@ -325,24 +326,34 @@ function Recommendation() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] px-4 sm:px-6 py-6 md:py-12">
-      <div className="mx-auto max-w-6xl">
+    <div className="min-h-screen bg-[#FAF7F2] text-[#2E2E2E]">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 md:py-10">
         <AuthNavbar />
 
-        {/* Hero Header */}
-        <div className="mb-8 text-center md:mb-14">
-          <div className="mx-auto mb-3 inline-flex items-center gap-2 rounded-full border border-[#8B6F47]/20 bg-[#8B6F47]/10 px-3.5 py-1 text-[11px] md:text-xs font-semibold uppercase tracking-wider text-[#8B6F47]">
-            <span>✨ AI-Powered Stylist</span>
+        {/* Standardized Editorial Header */}
+        <div className="mb-8 border-b border-[#EAE5DD]/80 pb-6 pt-2">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-[#8B6F47]/10 px-3 py-0.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#8B6F47] mb-2">
+                <Sparkles size={12} />
+                <span>✦ Outfit Studio</span>
+              </div>
+              <h1 className="font-['Playfair_Display'] text-3xl sm:text-4xl font-bold tracking-tight text-[#2E2E2E]">
+                Outfit Recommendation
+              </h1>
+              <p className="mt-1.5 text-xs sm:text-sm text-[#8C8277] max-w-xl">
+                Tell us where you're going and the season, and StyleMate will curate the perfect ensemble from your wardrobe.
+              </p>
+            </div>
+
+            {urlCity && (
+              <div className="inline-flex items-center gap-2 rounded-2xl bg-white border border-[#EAE5DD] px-3.5 py-2 text-xs font-medium text-[#2E2E2E] shadow-2xs">
+                <span>🌤️</span>
+                <span>Destination: <strong>{urlCity}</strong></span>
+                {urlTemp && <span className="text-[#8B6F47] font-semibold">{urlTemp}°C</span>}
+              </div>
+            )}
           </div>
-
-          <h1 className="font-['Playfair_Display'] text-3xl sm:text-4xl font-bold tracking-tight text-[#2E2E2E] md:text-6xl">
-            Outfit Recommendation
-          </h1>
-
-          <p className="mx-auto mt-3 max-w-2xl text-xs sm:text-base leading-relaxed text-gray-600 md:text-lg">
-            Tell us where you're going and the season, and StyleMate will
-            curate the best outfit from your wardrobe.
-          </p>
         </div>
 
 

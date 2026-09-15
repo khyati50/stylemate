@@ -11,6 +11,7 @@ import {
   LogIn,
   Trash2,
   LogOut,
+  Users,
 } from "lucide-react";
 import AuthNavbar from "../components/AuthNavbar";
 import OutfitCard from "../components/OutfitCard";
@@ -570,7 +571,7 @@ function Twinning() {
 
   return (
     <div className="min-h-screen bg-[#FAF7F2] text-[#2E2E2E]">
-      <div className="mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-10">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 md:py-10">
         <AuthNavbar />
 
         {toast && (
@@ -585,20 +586,30 @@ function Twinning() {
         {/* SCREEN 1: START OR JOIN                                       */}
         {/* ------------------------------------------------------------- */}
         {screen === "start" && (
-          <div className="mx-auto max-w-5xl">
-            {/* Header */}
-            <div className="mb-10 text-center md:mb-14">
-              <div className="mx-auto mb-3 inline-flex items-center gap-2 rounded-full border border-[#8B6F47]/20 bg-[#8B6F47]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#8B6F47]">
-                <Heart size={14} className="fill-[#8B6F47]" />
-                <span>Synchronized Style Engine</span>
+          <div>
+            {/* Standardized Editorial Header */}
+            <div className="mb-8 border-b border-[#EAE5DD]/80 pb-6 pt-2">
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-[#8B6F47]/10 px-3 py-0.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#8B6F47] mb-2">
+                    <Users size={12} />
+                    <span>✦ Twinning Studio</span>
+                  </div>
+                  <h1 className="font-['Playfair_Display'] text-3xl sm:text-4xl font-bold tracking-tight text-[#2E2E2E]">
+                    Couple & Friend Twinning
+                  </h1>
+                  <p className="mt-1.5 text-xs sm:text-sm text-[#8C8277] max-w-xl">
+                    Coordinate and harmonize your looks with your partner or best friend into perfectly synchronized ensembles.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  <div className="inline-flex items-center gap-1.5 rounded-2xl bg-white border border-[#EAE5DD] px-4 py-2 text-xs font-semibold text-[#8B6F47] shadow-2xs">
+                    <Heart size={13} className="fill-[#8B6F47] text-[#8B6F47]" />
+                    <span>Active Rooms: {mySessions.length}</span>
+                  </div>
+                </div>
               </div>
-              <h1 className="font-['Playfair_Display'] text-3xl font-bold text-[#2E2E2E] md:text-5xl">
-                Couple & Friend Twinning
-              </h1>
-              <p className="mx-auto mt-3 max-w-2xl text-sm text-gray-600 md:text-base">
-                Coordinate and harmonize your looks with your partner or best friend.
-                StyleMate aligns your individual wardrobes into perfectly synchronized ensembles.
-              </p>
             </div>
 
             {/* Action Cards */}
