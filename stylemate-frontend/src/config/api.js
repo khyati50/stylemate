@@ -1,16 +1,16 @@
-// Automatically resolves to the local Wi-Fi IP when accessing from a phone, or localhost when on PC
+// Automatically resolves to the current origin (with Vite proxying /api and /uploads to port 5000),
+// or the remote tunnel / Wi-Fi IP.
 export const getApiBaseUrl = () => {
   if (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
   }
-  if (
-    typeof window !== "undefined" &&
-    window.location &&
-    window.location.hostname &&
-    window.location.hostname !== "localhost" &&
-    window.location.hostname !== "127.0.0.1"
-  ) {
-    return `http://${window.location.hostname}:5000`;
+  if (typeof window !== "undefined" && window.location) {
+    // If running in browser or PWA
+    if (window.location.protocol.startsWith("http")) {
+      return window.location.origin;
+    }
+    // If running inside Capacitor native container (capacitor://localhost)
+    return "http://192.168.1.3:5000";
   }
   return "http://localhost:5000";
 };

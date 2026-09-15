@@ -36,7 +36,18 @@ export default defineConfig({
     }),
   ],
   server: {
-    host: true, // Listen on all network interfaces (0.0.0.0) so phone can connect over Wi-Fi
+    host: true, // Listen on all network interfaces (0.0.0.0)
     port: 5173,
+    allowedHosts: true, // Allow all hosts including tunnels and local IPs
+    proxy: {
+      "/api": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+      },
+      "/uploads": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+      },
+    },
   },
 });
