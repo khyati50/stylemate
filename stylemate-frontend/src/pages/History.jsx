@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { BookOpen } from "lucide-react";
 import OutfitCard from "../components/OutfitCard";
 import Toast from "../components/Toast";
+import { API_BASE_URL, getImageUrl } from "../config/api";
 
 function History() {
   const [history, setHistory] = useState([]);
@@ -25,7 +26,7 @@ function History() {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch("http://localhost:5000/api/history", {
+      const response = await fetch(`${API_BASE_URL}/api/history`, {
         headers: {
           authorization: token,
         },
@@ -57,7 +58,7 @@ function History() {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch("http://localhost:5000/api/feedback", {
+      const response = await fetch(`${API_BASE_URL}/api/feedback`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -195,7 +196,7 @@ function History() {
                         >
                           {item?.imageUrl ? (
                             <img
-                              src={`http://localhost:5000/${item.imageUrl}`}
+                              src={getImageUrl(item.imageUrl)}
                               alt={item.name}
                               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                             />

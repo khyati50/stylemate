@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import AuthNavbar from "../components/AuthNavbar";
 import Toast from "../components/Toast";
+import { API_BASE_URL, getImageUrl } from "../config/api";
 
 const QUICK_DESTINATIONS = [
   "Paris",
@@ -93,13 +94,6 @@ export default function PackingCapsule() {
 
   const token = localStorage.getItem("token");
 
-  // Helper for image URLs
-  const getImageUrl = (url) => {
-    if (!url) return null;
-    if (url.startsWith("http")) return url;
-    return `http://localhost:5000/${url.replace(/^\/+/, "")}`;
-  };
-
   // Helper to categorize an item client-side
   const getItemSlotType = (item) => {
     if (!item) return "top";
@@ -122,7 +116,7 @@ export default function PackingCapsule() {
 
   const fetchWardrobe = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/clothing/my-wardrobe", {
+      const res = await fetch(`${API_BASE_URL}/api/clothing/my-wardrobe`, {
         headers: { authorization: token },
       });
       if (res.status === 401) {
@@ -140,7 +134,7 @@ export default function PackingCapsule() {
 
   const fetchSavedTrips = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/capsule/my-trips", {
+      const res = await fetch(`${API_BASE_URL}/api/capsule/my-trips`, {
         headers: { authorization: token },
       });
       if (res.ok) {
@@ -167,7 +161,7 @@ export default function PackingCapsule() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/capsule/generate", {
+      const res = await fetch(`${API_BASE_URL}/api/capsule/generate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -292,7 +286,7 @@ export default function PackingCapsule() {
     if (!dayData) return;
 
     try {
-      const res = await fetch("http://localhost:5000/api/capsule/reroll", {
+      const res = await fetch(`${API_BASE_URL}/api/capsule/reroll`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -400,7 +394,7 @@ export default function PackingCapsule() {
     setSavingTrip(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/capsule/save", {
+      const res = await fetch(`${API_BASE_URL}/api/capsule/save`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -471,7 +465,7 @@ export default function PackingCapsule() {
     e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this saved travel capsule?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/capsule/${tripId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/capsule/${tripId}`, {
         method: "DELETE",
         headers: { authorization: token },
       });

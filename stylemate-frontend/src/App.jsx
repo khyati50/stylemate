@@ -14,10 +14,12 @@ import Twinning from "./pages/Twinning";
 import Chat from "./pages/Chat";
 import PackingCapsule from "./pages/PackingCapsule";
 import ShoppingAdvisor from "./pages/ShoppingAdvisor";
+import MobileBottomNav from "./components/MobileBottomNav";
 
 function App() {
   return (
-    <Routes>
+    <>
+      <Routes>
       <Route path="/" element={<Landing />} />
       <Route
         path="/register"
@@ -61,7 +63,9 @@ function App() {
       <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
       <Route path="/capsule" element={<ProtectedRoute><PackingCapsule /></ProtectedRoute>} />
       <Route path="/shopping" element={<ProtectedRoute><ShoppingAdvisor /></ProtectedRoute>} />
-    </Routes>
+      </Routes>
+      <MobileBottomNav />
+    </>
   );
 }
 

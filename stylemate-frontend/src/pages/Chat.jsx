@@ -12,6 +12,7 @@ import {
 import AuthNavbar from "../components/AuthNavbar";
 import OutfitCard from "../components/OutfitCard";
 import Toast from "../components/Toast";
+import { API_BASE_URL, getImageUrl } from "../config/api";
 
 const STARTER_PROMPTS = [
   "What should I wear to college tomorrow?",
@@ -41,7 +42,7 @@ function Chat() {
     try {
       const token = localStorage.getItem("token");
       if (token) {
-        await fetch("http://localhost:5000/api/chat/clear", {
+        await fetch(`${API_BASE_URL}/api/chat/clear`, {
           method: "DELETE",
           headers: {
             authorization: token,
@@ -81,7 +82,7 @@ function Chat() {
         return;
       }
 
-      const response = await fetch("http://localhost:5000/api/chat/recommend", {
+      const response = await fetch(`${API_BASE_URL}/api/chat/recommend`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -164,7 +165,7 @@ function Chat() {
       if (!token) return;
 
       const response = await fetch(
-        `http://localhost:5000/api/chat/feedback/${logId}`,
+        `${API_BASE_URL}/api/chat/feedback/${logId}`,
         {
           method: "PATCH",
           headers: {
@@ -200,7 +201,7 @@ function Chat() {
         return;
       }
 
-      const response = await fetch("http://localhost:5000/api/history", {
+      const response = await fetch(`${API_BASE_URL}/api/history`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -218,7 +219,7 @@ function Chat() {
 
         if (logId) {
           try {
-            await fetch(`http://localhost:5000/api/chat/feedback/${logId}`, {
+            await fetch(`${API_BASE_URL}/api/chat/feedback/${logId}`, {
               method: "PATCH",
               headers: {
                 "Content-Type": "application/json",

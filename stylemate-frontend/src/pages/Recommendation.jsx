@@ -4,6 +4,7 @@ import { Sparkles } from "lucide-react";
 import AuthNavbar from "../components/AuthNavbar";
 import OutfitCard from "../components/OutfitCard";
 import Toast from "../components/Toast";
+import { API_BASE_URL } from "../config/api";
 
 function Recommendation() {
   const [occasion, setOccasion] = useState("");
@@ -72,7 +73,7 @@ function Recommendation() {
       setHasSearched(true);
 
       const response = await fetch(
-        "http://localhost:5000/api/recommendation/recommend",
+        `${API_BASE_URL}/api/recommendation/recommend`,
         {
           method: "POST",
           headers: {
@@ -118,7 +119,7 @@ function Recommendation() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        "http://localhost:5000/api/recommendation/filters",
+        `${API_BASE_URL}/api/recommendation/filters`,
         {
           headers: {
             authorization: token,
@@ -143,7 +144,7 @@ function Recommendation() {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const response = await fetch("http://localhost:5000/api/preferences", {
+      const response = await fetch(`${API_BASE_URL}/api/preferences`, {
         headers: {
           authorization: token,
         },
@@ -191,7 +192,7 @@ function Recommendation() {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch("http://localhost:5000/api/history", {
+      const response = await fetch(`${API_BASE_URL}/api/history`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -220,7 +221,7 @@ function Recommendation() {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch("http://localhost:5000/api/feedback", {
+      const response = await fetch(`${API_BASE_URL}/api/feedback`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

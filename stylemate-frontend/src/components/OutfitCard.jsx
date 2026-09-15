@@ -1,10 +1,12 @@
+import { getImageUrl } from "../config/api";
+
 function OutfitCard({ title, item }) {
   return (
     <div className="group overflow-hidden rounded-2xl md:rounded-3xl bg-white shadow-sm border border-gray-100 transition-all duration-500 hover:shadow-xl hover:border-[#8B6F47]/30 flex flex-col">
       <div className="h-44 sm:h-64 md:h-80 bg-[#FAF7F2] relative overflow-hidden flex items-center justify-center">
         {item ? (
           <img
-            src={`http://localhost:5000/${item.imageUrl}`}
+            src={getImageUrl(item.imageUrl)}
             alt={item.name}
             className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
           />

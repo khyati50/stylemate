@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import AuthNavbar from "../components/AuthNavbar";
 import Toast from "../components/Toast";
+import { API_BASE_URL } from "../config/api";
 
 const FILTER_PILLS = [
   { id: "all", label: "All Picks", icon: Sparkles },
@@ -58,7 +59,7 @@ function ShoppingAdvisor() {
       }
 
       const response = await fetch(
-        `http://localhost:5000/api/shopping/recommendations?${queryParams.toString()}`,
+        `${API_BASE_URL}/api/shopping/recommendations?${queryParams.toString()}`,
         {
           headers: {
             authorization: token,
@@ -109,7 +110,7 @@ function ShoppingAdvisor() {
     setSubmittingId(key);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/shopping/mark-bought", {
+      const response = await fetch(`${API_BASE_URL}/api/shopping/mark-bought`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

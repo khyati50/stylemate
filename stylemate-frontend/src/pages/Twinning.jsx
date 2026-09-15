@@ -16,6 +16,7 @@ import {
 import AuthNavbar from "../components/AuthNavbar";
 import OutfitCard from "../components/OutfitCard";
 import Toast from "../components/Toast";
+import { API_BASE_URL, getImageUrl } from "../config/api";
 
 const OCCASIONS = [
   "Casual",
@@ -82,7 +83,7 @@ function Twinning() {
     if (!token) return;
 
     try {
-      const res = await fetch("http://localhost:5000/api/twinning/my-sessions", {
+      const res = await fetch(`${API_BASE_URL}/api/twinning/my-sessions`, {
         headers: { authorization: token },
       });
       if (res.status === 401) {
@@ -104,7 +105,7 @@ function Twinning() {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    fetch("http://localhost:5000/api/twinning/my-sessions", {
+    fetch(`${API_BASE_URL}/api/twinning/my-sessions`, {
       headers: { authorization: token },
     })
       .then((res) => (res.ok ? res.json() : null))
@@ -140,7 +141,7 @@ function Twinning() {
       if (!token || !code) return;
 
       try {
-        const res = await fetch(`http://localhost:5000/api/twinning/${code}`, {
+        const res = await fetch(`${API_BASE_URL}/api/twinning/${code}`, {
           headers: { authorization: token },
         });
 
@@ -241,7 +242,7 @@ function Twinning() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/twinning/${codeToDelete}`,
+        `${API_BASE_URL}/api/twinning/${codeToDelete}`,
         {
           method: "DELETE",
           headers: { authorization: token },
@@ -289,7 +290,7 @@ function Twinning() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/twinning/create", {
+      const res = await fetch(`${API_BASE_URL}/api/twinning/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -332,7 +333,7 @@ function Twinning() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/twinning/join", {
+      const res = await fetch(`${API_BASE_URL}/api/twinning/join`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -412,7 +413,7 @@ function Twinning() {
     if (token && session?.sessionCode) {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/twinning/${session.sessionCode}/settings`,
+          `${API_BASE_URL}/api/twinning/${session.sessionCode}/settings`,
           {
             method: "PATCH",
             headers: {
@@ -442,7 +443,7 @@ function Twinning() {
     if (token && session?.sessionCode) {
       try {
         await fetch(
-          `http://localhost:5000/api/twinning/${session.sessionCode}/settings`,
+          `${API_BASE_URL}/api/twinning/${session.sessionCode}/settings`,
           {
             method: "PATCH",
             headers: {
@@ -471,7 +472,7 @@ function Twinning() {
     if (token && session?.sessionCode) {
       try {
         await fetch(
-          `http://localhost:5000/api/twinning/${session.sessionCode}/settings`,
+          `${API_BASE_URL}/api/twinning/${session.sessionCode}/settings`,
           {
             method: "PATCH",
             headers: {
@@ -498,7 +499,7 @@ function Twinning() {
     isAdjustingRef.current = false;
     setGenerating(true);
     try {
-      const res = await fetch("http://localhost:5000/api/twinning/generate", {
+      const res = await fetch(`${API_BASE_URL}/api/twinning/generate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

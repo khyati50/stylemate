@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import loginHero from "../assets/loginHero.jpg";
+import { API_BASE_URL } from "../config/api";
 
 function Login() {
   const [searchParams] = useSearchParams();
@@ -22,7 +23,7 @@ function Login() {
       setLoading(true);
       setMessage("");
 
-      const request = await fetch("http://localhost:5000/api/auth/login", {
+      const request = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

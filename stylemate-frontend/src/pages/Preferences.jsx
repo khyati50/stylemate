@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Sliders, Sparkles } from "lucide-react";
 import AuthNavbar from "../components/AuthNavbar";
 import Toast from "../components/Toast";
+import { API_BASE_URL } from "../config/api";
 
 const COLOR_MAP = {
   black: "#000000",
@@ -90,7 +91,7 @@ function Preferences() {
           return;
         }
 
-        const response = await fetch("http://localhost:5000/api/preferences", {
+        const response = await fetch(`${API_BASE_URL}/api/preferences`, {
           headers: {
             authorization: token,
           },
@@ -156,7 +157,7 @@ function Preferences() {
         return;
       }
 
-      const response = await fetch("http://localhost:5000/api/preferences", {
+      const response = await fetch(`${API_BASE_URL}/api/preferences`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

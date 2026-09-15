@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { Search, X, ChevronDown, MapPin } from "lucide-react";
+import { API_BASE_URL } from "../config/api";
 
 function WeatherWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,7 +20,7 @@ function WeatherWidget() {
     setLoading(true);
     setError(null);
     try {
-      let url = "http://localhost:5000/api/weather/forecast";
+      let url = `${API_BASE_URL}/api/weather/forecast`;
       const params = new URLSearchParams();
       if (cityName) params.set("city", cityName);
       if (lat != null && lon != null) {
@@ -116,7 +117,7 @@ function WeatherWidget() {
     searchTimeoutRef.current = setTimeout(async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/weather/cities?q=${encodeURIComponent(
+          `${API_BASE_URL}/api/weather/cities?q=${encodeURIComponent(
             value.trim()
           )}`
         );

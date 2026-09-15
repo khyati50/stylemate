@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_BASE_URL, getImageUrl } from "../config/api";
 
 function ClothingModal({
   setShowModal,
@@ -47,7 +48,7 @@ function ClothingModal({
       const form = new FormData();
       form.append("image", formData.image);
 
-      const response = await fetch("http://localhost:5000/api/clothing/analyze-image", {
+      const response = await fetch(`${API_BASE_URL}/api/clothing/analyze-image`, {
         method: "POST",
         headers: {
           authorization: token,

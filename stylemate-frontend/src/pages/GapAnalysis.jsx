@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { BarChart2, RefreshCw } from "lucide-react";
 import AuthNavbar from "../components/AuthNavbar";
 import Toast from "../components/Toast";
+import { API_BASE_URL } from "../config/api";
 
 // ---------------------------------------------------------------------------
 // Health score helpers
@@ -95,8 +96,8 @@ function GapAnalysis() {
     try {
       const token = localStorage.getItem("token");
       const url = forceRefresh
-        ? "http://localhost:5000/api/gap-analysis?refresh=true"
-        : "http://localhost:5000/api/gap-analysis";
+        ? `${API_BASE_URL}/api/gap-analysis?refresh=true`
+        : `${API_BASE_URL}/api/gap-analysis`;
 
       const response = await fetch(url, {
         headers: {

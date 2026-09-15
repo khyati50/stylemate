@@ -6,6 +6,7 @@ import ClothingCard from "../components/ClothingCard";
 import ClothingModal from "../components/ClothingModal";
 import ClothingDetailModal from "../components/ClothingDetailModal";
 import AuthNavbar from "../components/AuthNavbar";
+import { API_BASE_URL } from "../config/api";
 
 const initialFormData = {
   name: "",
@@ -70,7 +71,7 @@ function Wardrobe() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        "http://localhost:5000/api/clothing/my-wardrobe",
+        `${API_BASE_URL}/api/clothing/my-wardrobe`,
         {
           method: "GET",
           headers: {
@@ -115,7 +116,7 @@ function Wardrobe() {
       form.append("image", formData.image);
 
       const response = await fetch(
-        "http://localhost:5000/api/clothing/addClothes",
+        `${API_BASE_URL}/api/clothing/addClothes`,
         {
           method: "POST",
           headers: {
@@ -150,7 +151,7 @@ function Wardrobe() {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch(`http://localhost:5000/api/clothing/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/clothing/${id}`, {
         method: "DELETE",
         headers: {
           authorization: token,
@@ -181,7 +182,7 @@ function Wardrobe() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `http://localhost:5000/api/clothing/${editId}`,
+        `${API_BASE_URL}/api/clothing/${editId}`,
         {
           method: "PUT",
           headers: {

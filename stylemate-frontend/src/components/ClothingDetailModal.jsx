@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
+import { API_BASE_URL, getImageUrl } from "../config/api";
 
 function ClothingDetailModal({ item, onClose, onEdit, onDelete }) {
   const [isAnimating, setIsAnimating] = useState(false);
@@ -71,11 +72,7 @@ function ClothingDetailModal({ item, onClose, onEdit, onDelete }) {
             <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl border border-[#EAE5DD] bg-[#FAF7F2] flex items-center justify-center">
               {item.imageUrl ? (
                 <img
-                  src={
-                    item.imageUrl.startsWith("http")
-                      ? item.imageUrl
-                      : `http://localhost:5000/${item.imageUrl}`
-                  }
+                  src={getImageUrl(item.imageUrl)}
                   alt={item.name}
                   className="h-full w-full object-cover object-center"
                 />
