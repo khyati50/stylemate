@@ -10,10 +10,22 @@ const {
 } = require("../controllers/clothingController");
 const router = express.Router();
 router.post(
+  "/",
+  authMiddleware,
+  upload.single("image"),
+  addClothingItem,
+);
+router.post(
   "/addClothes",
   authMiddleware,
   upload.single("image"),
   addClothingItem,
+);
+router.post(
+  "/analyze",
+  authMiddleware,
+  upload.single("image"),
+  analyzeClothingImage,
 );
 router.post(
   "/analyze-image",

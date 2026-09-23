@@ -250,7 +250,7 @@ erDiagram
 
     UserPreferences {
         int id PK
-        int userId FK UK
+        int userId FK, UK
         json favoriteColors
         json favoriteStyles
         json favoriteOccasions

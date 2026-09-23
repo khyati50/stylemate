@@ -45,6 +45,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/clothing", clothingRoutes);
 app.use("/api/recommendation", recommendationRoutes);
 app.use("/api/recommendations", recommendationRoutes);
+app.use("/api/recommendation/history", historyRoutes);
+app.use("/api/recommendations/history", historyRoutes);
 app.use("/api/history", historyRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/gap-analysis", gapAnalysisRoutes);

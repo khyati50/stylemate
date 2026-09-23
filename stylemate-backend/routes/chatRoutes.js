@@ -8,6 +8,7 @@ const {
   getChatAnalytics,
 } = require("../controllers/chatController");
 
+router.post("/", authMiddleware, recommendFromChat);
 router.post("/recommend", authMiddleware, recommendFromChat);
 router.delete("/clear", authMiddleware, clearChatHistory);
 router.patch("/feedback/:logId", authMiddleware, submitChatFeedback);
