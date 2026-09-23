@@ -38,6 +38,26 @@ const recommendOutfit = async (req, res) => {
       userPrefs = await computeUserPreferences(userId);
     }
 
+    const chosenStyle = typeof style === "string" ? style.trim().toLowerCase() : "";
+    const chosenColor = typeof color === "string" ? color.trim().toLowerCase() : "";
+
+    // Filter out the explicitly chosen style/color from disliked arrays safely
+    const filteredDislikedStyles = (userPrefs?.dislikedStyles || [])
+      .filter((s) => s && typeof s === "string")
+      .map((s) => s.trim().toLowerCase())
+      .filter((s) => s && s !== chosenStyle);
+    const filteredDislikedColors = (userPrefs?.dislikedColors || [])
+      .filter((c) => c && typeof c === "string")
+      .map((c) => c.trim().toLowerCase())
+      .filter((c) => c && c !== chosenColor);
+
+    const fallbackStyle = typeof userPrefs?.favoriteStyles?.[0] === "string"
+      ? userPrefs.favoriteStyles[0].trim().toLowerCase()
+      : "";
+    const fallbackColor = typeof userPrefs?.favoriteColors?.[0] === "string"
+      ? userPrefs.favoriteColors[0].trim().toLowerCase()
+      : "";
+
     const inputData = {
       wardrobe,
       weather: weather || {
@@ -46,11 +66,13 @@ const recommendOutfit = async (req, res) => {
         season: season,
       },
       user_preferences: user_preferences || {
-        occasion: occasion || "casual",
-        preferred_style: style || userPrefs?.favoriteStyles?.[0] || "",
-        preferred_color: color || userPrefs?.favoriteColors?.[0] || "",
-        disliked_colors: userPrefs?.dislikedColors || [],
-        disliked_styles: userPrefs?.dislikedStyles || [],
+        occasion: typeof occasion === "string" ? occasion.trim().toLowerCase() : "casual",
+        preferred_style: chosenStyle || fallbackStyle,
+        preferred_color: chosenColor || fallbackColor,
+        disliked_colors: filteredDislikedColors,
+        disliked_styles: filteredDislikedStyles,
+        explicit_style: !!chosenStyle,
+        explicit_color: !!chosenColor,
       },
       user_history: user_history || {
         average_rating: userPrefs?.averageRating || 4.0,
@@ -89,6 +111,10 @@ const recommendOutfit = async (req, res) => {
       message: "Outfits recommended successfully.",
       outfits: formattedOutfits,
       outfit: formattedOutfits[0].outfit,
+      appliedPreferences: {
+        style: chosenStyle,
+        color: chosenColor,
+      },
     });
   } catch (error) {
     console.error("Recommendation AI Error:", error);

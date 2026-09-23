@@ -18,16 +18,26 @@ const initialFormData = {
   seasons: "",
 };
 
+// Module-level in-memory cache and launch state for instant zero-waiting tab navigation
+let cachedWardrobe = null;
+let hasAppLaunched =
+  typeof window !== "undefined"
+    ? sessionStorage.getItem("stylemate_app_launched") === "true"
+    : false;
+
 function Wardrobe() {
   const navigate = useNavigate();
 
+  // Only show splash screen on very first app launch/load, NEVER during tab navigation
+  const isFirstLaunch = !hasAppLaunched;
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cachedWardrobe);
+  const [initialLoading, setInitialLoading] = useState(isFirstLaunch);
   const [message, setMessage] = useState("");
 
   const [editId, setEditId] = useState(null);
 
-  const [wardrobe, setWardrobe] = useState([]);
+  const [wardrobe, setWardrobe] = useState(cachedWardrobe || []);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState(null);
@@ -64,9 +74,10 @@ function Wardrobe() {
     setShowModal(true);
   }
 
-  async function fetchWardrobe() {
+  async function fetchWardrobe(isInitial = false) {
+    const startTime = Date.now();
     try {
-      setLoading(true);
+      if (!isInitial && !cachedWardrobe) setLoading(true);
 
       const token = localStorage.getItem("token");
 
@@ -82,23 +93,44 @@ function Wardrobe() {
 
       if (response.status === 401) {
         localStorage.removeItem("token");
+        sessionStorage.removeItem("stylemate_app_launched");
+        hasAppLaunched = false;
+        cachedWardrobe = null;
         navigate("/login");
         return;
       }
 
       const data = await response.json();
-
-      setWardrobe(data.wardrobe || []);
+      const items = data.wardrobe || [];
+      cachedWardrobe = items;
+      setWardrobe(items);
     } catch (error) {
       console.error(error);
       setMessage("Something went wrong. Please try again.");
     } finally {
-      setLoading(false);
+      if (isInitial) {
+        hasAppLaunched = true;
+        try {
+          sessionStorage.setItem("stylemate_app_launched", "true");
+        } catch {
+          // ignore
+        }
+        const elapsed = Date.now() - startTime;
+        const delay = Math.max(0, 500 - elapsed);
+        setTimeout(() => {
+          setInitialLoading(false);
+          setLoading(false);
+        }, delay);
+      } else {
+        setLoading(false);
+      }
     }
   }
 
   useEffect(() => {
-    fetchWardrobe();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchWardrobe(isFirstLaunch);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function addClothing() {
@@ -296,6 +328,41 @@ function Wardrobe() {
       occasionMatch
     );
   });
+
+  if (initialLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#FAF7F2] text-[#1A1918] select-none">
+        {/* Subtle Ambient Radial Warm Glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(150,120,78,0.08)_0%,transparent_65%)] pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col items-center text-center px-4 max-w-sm animate-in fade-in duration-300">
+          {/* Glowing Animated Sparkle Badge */}
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white border border-[#EBE6DE] shadow-[0_10px_30px_rgba(150,120,78,0.12)] mb-5 text-[#96784E]">
+            <span className="text-2xl animate-[spin_8s_linear_infinite]">✦</span>
+          </div>
+
+          {/* Luxury Brand Title */}
+          <h1 className="font-['Playfair_Display'] text-3xl sm:text-4xl font-bold tracking-tight text-[#1A1918]">
+            StyleMate
+          </h1>
+
+          <p className="mt-1.5 text-[10px] sm:text-[11px] uppercase tracking-[0.25em] font-semibold text-[#8C8277]">
+            AI Personal Stylist &amp; Smart Closet
+          </p>
+
+          {/* Luxury Gold Loading Progress Bar */}
+          <div className="mt-8 w-48 h-1 bg-[#EAE5DD] rounded-full overflow-hidden relative">
+            <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-transparent via-[#96784E] to-transparent rounded-full animate-[luxuryProgress_1.3s_ease-in-out_infinite]" />
+          </div>
+
+          {/* Status Message */}
+          <p className="mt-3.5 text-xs font-medium text-[#8C8277] tracking-wide animate-pulse">
+            Opening your digital wardrobe...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FAF7F2] text-[#2E2E2E]">
@@ -533,9 +600,14 @@ function Wardrobe() {
 
         {/* Collection Grid (2 per row on Mobile, 3 on Tablet, 4 on Desktop) */}
         {loading ? (
-          <p className="py-20 text-center text-sm font-medium text-gray-500">
-            Loading your digital collection...
-          </p>
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white border border-[#EBE6DE] shadow-xs text-[#96784E] mb-3">
+              <span className="text-lg animate-[spin_3s_linear_infinite]">✦</span>
+            </div>
+            <p className="text-xs font-medium text-[#8C8277]">
+              Refreshing your collection...
+            </p>
+          </div>
         ) : wardrobe.length === 0 ? (
           <div className="rounded-3xl border border-[#EAE5DD] bg-white py-20 text-center shadow-sm">
             <h2 className="font-['Playfair_Display'] text-3xl font-bold text-[#2E2E2E]">

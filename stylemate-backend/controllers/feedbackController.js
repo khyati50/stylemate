@@ -6,12 +6,22 @@ const saveOutfitFeedback = async (req, res) => {
     const { historyId, outfit, rating, feedbackReason, feedbackDetails } =
       req.body;
     const VALID_REASONS = [
+      // New Wear Experience Reasons:
+      "WEATHER_MISMATCH",
+      "OCCASION_VIBE_MISMATCH",
+      "SILHOUETTE_MISMATCH",
+      "IMPRACTICAL",
+      "PERFECT_OCCASION",
+      "GREAT_WEATHER",
+      "COMPLIMENTS",
+      "LOVED_COMBINATION",
+      "OTHER",
+      // Legacy / Recommendation Rejection Reasons (backward compatible):
       "COLOR_MISMATCH",
       "STYLE_MISMATCH",
       "TOO_FORMAL",
       "TOO_CASUAL",
       "OCCASION_MISMATCH",
-      "OTHER",
     ];
     const userId = req.user.id;
 
@@ -52,7 +62,7 @@ const saveOutfitFeedback = async (req, res) => {
       outfit,
       rating,
       feedbackReason,
-      feedbackDetails,
+      feedbackDetails: feedbackDetails ? String(feedbackDetails).trim() : null,
     });
 
     computeUserPreferences(userId).catch(console.error);

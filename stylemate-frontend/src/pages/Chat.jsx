@@ -12,7 +12,7 @@ import {
 import AuthNavbar from "../components/AuthNavbar";
 import OutfitCard from "../components/OutfitCard";
 import Toast from "../components/Toast";
-import { API_BASE_URL, getImageUrl } from "../config/api";
+import { API_BASE_URL } from "../config/api";
 
 const STARTER_PROMPTS = [
   "What should I wear to college tomorrow?",
@@ -28,6 +28,8 @@ function Chat() {
   const [toast, setToast] = useState(null); // { message, variant }
 
   const messagesEndRef = useRef(null);
+  const msgIdRef = useRef(0);
+  const nextId = () => ++msgIdRef.current;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -66,7 +68,7 @@ function Chat() {
     if (!query || loading) return;
 
     const userMsg = {
-      id: Date.now(),
+      id: nextId(),
       sender: "user",
       text: query,
     };
@@ -101,7 +103,7 @@ function Chat() {
 
       if (response.ok) {
         const assistantMsg = {
-          id: Date.now() + 1,
+          id: nextId(),
           logId: data.logId || null,
           userFeedback: null,
           sender: "assistant",
@@ -114,7 +116,7 @@ function Chat() {
         setMessages((prev) => [...prev, assistantMsg]);
       } else {
         const errorMsg = {
-          id: Date.now() + 1,
+          id: nextId(),
           sender: "assistant",
           text:
             data.message ||
@@ -126,7 +128,7 @@ function Chat() {
     } catch (err) {
       console.error("Chat error:", err);
       const errorMsg = {
-        id: Date.now() + 1,
+        id: nextId(),
         sender: "assistant",
         text: "Something went wrong while connecting to the assistant. Please try again.",
         error: true,

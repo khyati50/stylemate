@@ -67,6 +67,7 @@ function AuthNavbar() {
 
   function confirmLogout() {
     localStorage.removeItem("token");
+    sessionStorage.removeItem("stylemate_app_launched");
     setShowLogoutModal(false);
     navigate("/login");
   }

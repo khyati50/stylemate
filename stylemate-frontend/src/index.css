@@ -25,3 +25,30 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #96784e;
 }
+
+@keyframes luxuryProgress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+/* Silk-smooth instant page transitions without waiting time */
+.min-h-screen {
+  animation: smoothPageFade 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes smoothPageFade {
+  from {
+    opacity: 0.88;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+

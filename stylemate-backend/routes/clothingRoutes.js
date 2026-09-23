@@ -21,6 +21,7 @@ router.post(
   upload.single("image"),
   analyzeClothingImage,
 );
+router.get("/", authMiddleware, getMyWardrobe);
 router.get("/my-wardrobe", authMiddleware, getMyWardrobe);
 router.delete("/:id", authMiddleware, deleteClothingItem);
 router.put("/:id", authMiddleware, updateClothingItem);

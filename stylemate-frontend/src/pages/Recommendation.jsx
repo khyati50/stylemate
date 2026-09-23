@@ -32,6 +32,7 @@ function Recommendation() {
   const [feedbackDetails, setFeedbackDetails] = useState("");
   const [style, setStyle] = useState("");
   const [color, setColor] = useState("");
+  const [appliedPreferences, setAppliedPreferences] = useState({ style: "", color: "" });
   const [toast, setToast] = useState(null); // { message, variant }
   const [userPreferences, setUserPreferences] = useState(null);
 
@@ -50,6 +51,7 @@ function Recommendation() {
     if (urlSeason) {
       const s = urlSeason.toLowerCase();
       if (["summer", "winter", "spring", "autumn"].includes(s)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSeason((prev) => (prev !== s ? s : prev));
       }
     }
@@ -58,7 +60,7 @@ function Recommendation() {
     }
   }, [urlSeason, urlCity]);
 
-  async function HandleRecommendation() {
+  async function HandleRecommendation(overridePreferences = null) {
     try {
       const token = localStorage.getItem("token");
       if (!occasion || !season) {
@@ -67,6 +69,9 @@ function Recommendation() {
         setCurrentIndex(0);
         return;
       }
+
+      const activeStyle = overridePreferences?.style !== undefined ? overridePreferences.style : style;
+      const activeColor = overridePreferences?.color !== undefined ? overridePreferences.color : color;
 
       setMessage("");
       setLoading(true);
@@ -83,8 +88,8 @@ function Recommendation() {
           body: JSON.stringify({
             occasion,
             season,
-            style,
-            color,
+            style: activeStyle,
+            color: activeColor,
           }),
         },
       );
@@ -101,6 +106,10 @@ function Recommendation() {
         setRecommendations(data.outfits);
         setCurrentIndex(0);
         setMessage("");
+        setAppliedPreferences({
+          style: data.appliedPreferences?.style !== undefined ? data.appliedPreferences.style : activeStyle,
+          color: data.appliedPreferences?.color !== undefined ? data.appliedPreferences.color : activeColor,
+        });
       } else {
         setRecommendations([]);
         setCurrentIndex(0);
@@ -166,8 +175,10 @@ function Recommendation() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchRecommendationFilters();
     fetchUserPreferences();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const recommendation = recommendations[currentIndex]?.outfit || null;
@@ -432,20 +443,45 @@ function Recommendation() {
 
             {showAdvancedFilters && (
               <div className="mt-6 rounded-2xl border border-[#8B6F47]/15 bg-[#FAF7F2]/60 p-6 transition-all">
-                <div className="mb-4">
-                  <h3 className="text-sm font-semibold text-[#2E2E2E]">
-                    Fine-tune Style & Color Preferences
-                  </h3>
-                  <p className="text-xs text-gray-500">
-                    Optional preferences to influence outfit ranking without excluding valid choices.
-                  </p>
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#2E2E2E]">
+                      Fine-tune Style & Color Preferences
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      Optional preferences to influence outfit ranking without excluding valid choices.
+                    </p>
+                  </div>
+                  {(style || color) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStyle("");
+                        setColor("");
+                      }}
+                      className="text-xs font-semibold text-[#8B6F47] hover:text-[#725a39] underline cursor-pointer shrink-0 ml-3"
+                    >
+                      Reset to Any
+                    </button>
+                  )}
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-xs font-medium text-[#2E2E2E]">
-                      Preferred Style
-                    </label>
+                    <div className="mb-2 flex items-center justify-between">
+                      <label className="text-xs font-medium text-[#2E2E2E]">
+                        Preferred Style
+                      </label>
+                      {style && (
+                        <button
+                          type="button"
+                          onClick={() => setStyle("")}
+                          className="text-[11px] text-gray-400 hover:text-gray-600 underline cursor-pointer"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
 
                     <select
                       value={style}
@@ -463,9 +499,20 @@ function Recommendation() {
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-xs font-medium text-[#2E2E2E]">
-                      Preferred Color
-                    </label>
+                    <div className="mb-2 flex items-center justify-between">
+                      <label className="text-xs font-medium text-[#2E2E2E]">
+                        Preferred Color
+                      </label>
+                      {color && (
+                        <button
+                          type="button"
+                          onClick={() => setColor("")}
+                          className="text-[11px] text-gray-400 hover:text-gray-600 underline cursor-pointer"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
 
                     <select
                       value={color}
@@ -551,15 +598,40 @@ function Recommendation() {
                 : "opacity-100 translate-y-0 scale-100"
             }`}
           >
-            {(userPreferences?.favoriteStyles?.length > 0 ||
-              userPreferences?.favoriteColors?.length > 0) && (
+            {(appliedPreferences.style || appliedPreferences.color) ? (
+              <div className="mb-6 flex items-center justify-between rounded-2xl border border-[#8B6F47]/25 bg-[#8B6F47]/10 px-5 py-3 text-xs md:text-sm font-semibold text-[#8B6F47] shadow-xs">
+                <div className="flex items-center gap-2">
+                  <span>✨</span>
+                  <span>
+                    Tailored to your request:{" "}
+                    {appliedPreferences.style && <strong className="capitalize">{appliedPreferences.style} style</strong>}
+                    {appliedPreferences.style && appliedPreferences.color && " · "}
+                    {appliedPreferences.color && <strong className="capitalize">{appliedPreferences.color} tones</strong>}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStyle("");
+                    setColor("");
+                    setAppliedPreferences({ style: "", color: "" });
+                    if (occasion && season) {
+                      HandleRecommendation({ style: "", color: "" });
+                    }
+                  }}
+                  className="text-xs text-[#8B6F47] underline hover:text-[#725a39] font-normal cursor-pointer"
+                >
+                  Reset Preferences
+                </button>
+              </div>
+            ) : (userPreferences?.favoriteStyles?.length > 0 || userPreferences?.favoriteColors?.length > 0) ? (
               <div className="mb-6 flex items-center gap-2 rounded-2xl border border-[#8B6F47]/20 bg-[#8B6F47]/10 px-4 py-3 text-xs md:text-sm font-medium text-[#8B6F47]">
                 <span>✨</span>
                 <span>
-                  {`Personalized for you: ${userPreferences?.favoriteStyles?.[0] || ""} style, ${userPreferences?.favoriteColors?.[0] || ""} tones.`}
+                  {`Personalized for your Style DNA: ${userPreferences?.favoriteStyles?.[0] || "signature"} style, ${userPreferences?.favoriteColors?.[0] || "curated"} tones.`}
                 </span>
               </div>
-            )}
+            ) : null}
 
             <div className="mb-8 flex flex-col items-center justify-between gap-4 border-b border-gray-200/60 pb-6 md:flex-row">
               <div>
@@ -603,19 +675,49 @@ function Recommendation() {
             {/* Grid of Outfit Cards */}
             <div className={`grid gap-3 md:gap-8 ${mobileGridClass} md:grid-cols-2 xl:grid-cols-4`}>
               {recommendation.fullBody ? (
-                <OutfitCard title="Full Body" item={recommendation.fullBody} />
+                <OutfitCard
+                  title="Full Body"
+                  item={recommendation.fullBody}
+                  preferredStyle={appliedPreferences.style}
+                  preferredColor={appliedPreferences.color}
+                />
               ) : (
                 <>
-                  <OutfitCard title="Top" item={recommendation.top} />
-                  <OutfitCard title="Bottom" item={recommendation.bottom} />
+                  <OutfitCard
+                    title="Top"
+                    item={recommendation.top}
+                    preferredStyle={appliedPreferences.style}
+                    preferredColor={appliedPreferences.color}
+                  />
+                  <OutfitCard
+                    title="Bottom"
+                    item={recommendation.bottom}
+                    preferredStyle={appliedPreferences.style}
+                    preferredColor={appliedPreferences.color}
+                  />
                 </>
               )}
-              <OutfitCard title="Footwear" item={recommendation.footwear} />
+              <OutfitCard
+                title="Footwear"
+                item={recommendation.footwear}
+                preferredStyle={appliedPreferences.style}
+                preferredColor={appliedPreferences.color}
+              />
               {recommendation.outerwear && (
-                <OutfitCard title="Outerwear" item={recommendation.outerwear} />
+                <OutfitCard
+                  title="Outerwear"
+                  item={recommendation.outerwear}
+                  preferredStyle={appliedPreferences.style}
+                  preferredColor={appliedPreferences.color}
+                />
               )}
               {recommendation.accessory && (
-                <OutfitCard title="Accessory" item={recommendation.accessory} />
+                <OutfitCard
+                  title="Accessory"
+                  item={recommendation.accessory}
+                  preferredStyle={appliedPreferences.style}
+                  preferredColor={appliedPreferences.color}
+                />
               )}
             </div>
 

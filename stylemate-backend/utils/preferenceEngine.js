@@ -127,8 +127,21 @@ async function computeUserPreferences(userId) {
         : null;
     const reason = fb.feedbackReason;
 
-    // Liked group: rating >= 4
-    if (rating !== null && rating >= 4) {
+    const POSITIVE_REASONS = [
+      "PERFECT_OCCASION",
+      "GREAT_WEATHER",
+      "COMPLIMENTS",
+      "LOVED_COMBINATION",
+    ];
+    const NEGATIVE_REASONS = [
+      "OCCASION_VIBE_MISMATCH",
+      "SILHOUETTE_MISMATCH",
+      "COLOR_MISMATCH",
+      "STYLE_MISMATCH",
+    ];
+
+    // Liked group: rating >= 4 or positive wear reasons
+    if ((rating !== null && rating >= 4) || POSITIVE_REASONS.includes(reason)) {
       for (const item of items) {
         likedColors.push(...toCleanStringArray(item.colors || item.color));
         likedStyles.push(...toCleanStringArray(item.styles || item.style));
@@ -143,16 +156,10 @@ async function computeUserPreferences(userId) {
       }
     }
 
-    // Disliked color signal: feedbackReason === "COLOR_MISMATCH" OR rating <= 2
-    if (reason === "COLOR_MISMATCH" || (rating !== null && rating <= 2)) {
+    // Disliked group: rating <= 2 or negative wear reasons
+    if ((rating !== null && rating <= 2) || NEGATIVE_REASONS.includes(reason)) {
       for (const item of items) {
         dislikedColorsList.push(...toCleanStringArray(item.colors || item.color));
-      }
-    }
-
-    // Disliked style signal: feedbackReason === "STYLE_MISMATCH" OR rating <= 2
-    if (reason === "STYLE_MISMATCH" || (rating !== null && rating <= 2)) {
-      for (const item of items) {
         dislikedStylesList.push(...toCleanStringArray(item.styles || item.style));
       }
     }

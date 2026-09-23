@@ -14,6 +14,7 @@ function History() {
   const [selectedDetailEntry, setSelectedDetailEntry] = useState(null);
   const [rating, setRating] = useState(0);
   const [ratingFeedbackReason, setRatingFeedbackReason] = useState("");
+  const [ratingFeedbackDetails, setRatingFeedbackDetails] = useState("");
   const [toast, setToast] = useState(null); // { message, variant }
 
   const showToast = (message, variant = "success") => {
@@ -51,7 +52,9 @@ function History() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function HandleSubmitRating() {
@@ -69,6 +72,10 @@ function History() {
           outfit: selectedHistory.outfit,
           rating: rating,
           feedbackReason: ratingFeedbackReason || null,
+          feedbackDetails:
+            ratingFeedbackReason === "OTHER" && ratingFeedbackDetails
+              ? ratingFeedbackDetails.trim()
+              : null,
         }),
       });
 
@@ -78,9 +85,10 @@ function History() {
         showToast("Rating submitted successfully!");
 
         setShowRatingModal(false);
-        setSelectedHistory(null);
         setRating(0);
+        setSelectedHistory(null);
         setRatingFeedbackReason("");
+        setRatingFeedbackDetails("");
         fetchHistory();
       } else {
         showToast(data.message, "error");
@@ -233,6 +241,8 @@ function History() {
                             e.stopPropagation();
                             setSelectedHistory(entry);
                             setRating(0);
+                            setRatingFeedbackReason("");
+                            setRatingFeedbackDetails("");
                             setShowRatingModal(true);
                           }}
                           className="rounded-xl bg-[#8B6F47] px-5 py-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-[#725a39] active:scale-95"
@@ -351,6 +361,8 @@ function History() {
                     onClick={() => {
                       setSelectedHistory(selectedDetailEntry);
                       setRating(0);
+                      setRatingFeedbackReason("");
+                      setRatingFeedbackDetails("");
                       setShowRatingModal(true);
                       setSelectedDetailEntry(null);
                     }}
@@ -380,7 +392,16 @@ function History() {
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
-                    onClick={() => setRating(star)}
+                    onClick={() => {
+                      if (
+                        (rating >= 4 && star <= 3) ||
+                        (rating > 0 && rating <= 3 && star >= 4)
+                      ) {
+                        setRatingFeedbackReason("");
+                        setRatingFeedbackDetails("");
+                      }
+                      setRating(star);
+                    }}
                     className={`text-4xl transition duration-200 hover:scale-125 ${
                       rating >= star ? "text-amber-400" : "text-gray-300"
                     }`}
@@ -390,39 +411,130 @@ function History() {
                 ))}
               </div>
 
-              {/* Optional Reason Step */}
-              <div className="mb-6">
-                <p className="mb-3 text-xs font-semibold text-gray-500">
-                  Any specific reason? (optional)
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { label: "Color mismatch", value: "COLOR_MISMATCH" },
-                    { label: "Style mismatch", value: "STYLE_MISMATCH" },
-                    { label: "Too formal", value: "TOO_FORMAL" },
-                    { label: "Too casual", value: "TOO_CASUAL" },
-                    { label: "Occasion mismatch", value: "OCCASION_MISMATCH" },
-                    { label: "Other", value: "OTHER" },
-                  ].map((chip) => (
-                    <button
-                      key={chip.value}
-                      type="button"
-                      onClick={() =>
-                        setRatingFeedbackReason((prev) =>
-                          prev === chip.value ? "" : chip.value,
-                        )
-                      }
-                      className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
-                        ratingFeedbackReason === chip.value
-                          ? "border-[#8B6F47] bg-[#8B6F47] text-white"
-                          : "border-gray-200 bg-[#FAF7F2] text-gray-600 hover:border-gray-300"
-                      }`}
-                    >
-                      {chip.label}
-                    </button>
-                  ))}
+              {/* Wear Experience Reasons: Only shown when rating > 0 */}
+              {rating >= 4 && (
+                <div className="mb-6">
+                  <p className="mb-2 text-xs font-semibold text-emerald-800">
+                    Glad you loved this look! ✨ What worked well? (optional)
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      {
+                        label: "🎯 Spot-on for the Occasion",
+                        value: "PERFECT_OCCASION",
+                      },
+                      {
+                        label: "🌤️ Great Weather Match",
+                        value: "GREAT_WEATHER",
+                      },
+                      {
+                        label: "✨ Felt Confident / Got Compliments",
+                        value: "COMPLIMENTS",
+                      },
+                      {
+                        label: "💫 Loved the Combination",
+                        value: "LOVED_COMBINATION",
+                      },
+                      { label: "💬 Other", value: "OTHER" },
+                    ].map((chip) => (
+                      <button
+                        key={chip.value}
+                        type="button"
+                        onClick={() =>
+                          setRatingFeedbackReason((prev) => {
+                            const next = prev === chip.value ? "" : chip.value;
+                            if (next !== "OTHER") setRatingFeedbackDetails("");
+                            return next;
+                          })
+                        }
+                        className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
+                          ratingFeedbackReason === chip.value
+                            ? "border-[#8B6F47] bg-[#8B6F47] text-white"
+                            : "border-gray-200 bg-[#FAF7F2] text-gray-600 hover:border-gray-300"
+                        }`}
+                      >
+                        {chip.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {ratingFeedbackReason === "OTHER" && (
+                    <div className="mt-3">
+                      <textarea
+                        value={ratingFeedbackDetails}
+                        onChange={(e) =>
+                          setRatingFeedbackDetails(e.target.value)
+                        }
+                        placeholder="Tell us a bit more (optional)..."
+                        rows={2}
+                        className="w-full rounded-xl border border-gray-200 bg-[#FAF7F2] p-3 text-xs text-[#2E2E2E] outline-none transition focus:border-[#8B6F47] focus:ring-1 focus:ring-[#8B6F47]"
+                      />
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
+
+              {rating > 0 && rating <= 3 && (
+                <div className="mb-6">
+                  <p className="mb-2 text-xs font-semibold text-[#8B6F47]">
+                    What felt off about the look? (optional)
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      {
+                        label: "🌦️ Wrong for the Weather",
+                        value: "WEATHER_MISMATCH",
+                      },
+                      {
+                        label: "🎭 Wrong Vibe for the Occasion",
+                        value: "OCCASION_VIBE_MISMATCH",
+                      },
+                      {
+                        label: "🪞 Didn't Look Right in Real Life",
+                        value: "SILHOUETTE_MISMATCH",
+                      },
+                      {
+                        label: "⚡ Hard to Carry / Impractical",
+                        value: "IMPRACTICAL",
+                      },
+                      { label: "💬 Other", value: "OTHER" },
+                    ].map((chip) => (
+                      <button
+                        key={chip.value}
+                        type="button"
+                        onClick={() =>
+                          setRatingFeedbackReason((prev) => {
+                            const next = prev === chip.value ? "" : chip.value;
+                            if (next !== "OTHER") setRatingFeedbackDetails("");
+                            return next;
+                          })
+                        }
+                        className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
+                          ratingFeedbackReason === chip.value
+                            ? "border-[#8B6F47] bg-[#8B6F47] text-white"
+                            : "border-gray-200 bg-[#FAF7F2] text-gray-600 hover:border-gray-300"
+                        }`}
+                      >
+                        {chip.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {ratingFeedbackReason === "OTHER" && (
+                    <div className="mt-3">
+                      <textarea
+                        value={ratingFeedbackDetails}
+                        onChange={(e) =>
+                          setRatingFeedbackDetails(e.target.value)
+                        }
+                        placeholder="Tell us a bit more (optional)..."
+                        rows={2}
+                        className="w-full rounded-xl border border-gray-200 bg-[#FAF7F2] p-3 text-xs text-[#2E2E2E] outline-none transition focus:border-[#8B6F47] focus:ring-1 focus:ring-[#8B6F47]"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="flex justify-end gap-3">
                 <button
@@ -431,6 +543,7 @@ function History() {
                     setRating(0);
                     setSelectedHistory(null);
                     setRatingFeedbackReason("");
+                    setRatingFeedbackDetails("");
                   }}
                   className="rounded-xl border border-gray-300 px-5 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
                 >

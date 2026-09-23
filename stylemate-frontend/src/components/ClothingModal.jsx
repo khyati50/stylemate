@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { API_BASE_URL, getImageUrl } from "../config/api";
+import { API_BASE_URL } from "../config/api";
 
 function ClothingModal({
   setShowModal,
@@ -25,6 +25,7 @@ function ClothingModal({
   useEffect(() => {
     if (formData.image instanceof File) {
       const objectUrl = URL.createObjectURL(formData.image);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setImagePreview(objectUrl);
       setDetectionBanner(null);
       setDetectionSuggestions(null);

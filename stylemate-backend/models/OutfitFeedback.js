@@ -33,6 +33,11 @@ const OutfitFeedback = db.define("OutfitFeedback", {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+}, {
+  indexes: [
+    { fields: ["historyId"] },
+    { fields: ["userId"] },
+  ],
 });
 
 module.exports = OutfitFeedback;

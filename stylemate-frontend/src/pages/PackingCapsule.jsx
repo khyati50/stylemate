@@ -14,7 +14,6 @@ import {
   ChevronRight,
   X,
   Compass,
-  Layers,
   Shirt,
   Sun,
   CloudSnow,
@@ -108,12 +107,6 @@ export default function PackingCapsule() {
     return "top";
   };
 
-  // Fetch full wardrobe and saved trips on mount
-  useEffect(() => {
-    fetchWardrobe();
-    fetchSavedTrips();
-  }, []);
-
   const fetchWardrobe = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/clothing/my-wardrobe`, {
@@ -145,6 +138,14 @@ export default function PackingCapsule() {
       console.error("fetchSavedTrips error:", err);
     }
   };
+
+  // Fetch full wardrobe and saved trips on mount
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchWardrobe();
+    fetchSavedTrips();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Generate Capsule
   const handleGenerateCapsule = async () => {

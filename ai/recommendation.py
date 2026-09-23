@@ -29,15 +29,33 @@ from ranker import rank_outfits
 # ---------------------------------------------------------------------------
 
 # ML score range observed: ~0.67–0.94, std ~0.07.
-# Each preference contributes up to 0.075, so combined max boost = 0.15.
-# This is ~2× the typical std — enough to reorder outfits when there is a
-# meaningful preference match, without overriding the ML quality signal.
+# Background preferences contribute up to 0.075 each.
+# Explicit user preferences contribute up to 0.35 each (binary presence-based),
+# guaranteed to overcome the max observed ML score gap (~0.27).
 _STYLE_BOOST_MAX = 0.075
 _COLOR_BOOST_MAX = 0.075
+_EXPLICIT_BOOST_MAX = 0.35
+
+
+def _normalize_tags(raw):
+    """
+    Normalizes a clothing tag field (styles, colors, etc.) into a list of
+    lowercase, trimmed strings. Handles lists, comma-separated strings,
+    None, and mixed types safely.
+    """
+    if not raw:
+        return []
+    if isinstance(raw, list):
+        return [str(s).strip().lower() for s in raw if s and str(s).strip()]
+    if isinstance(raw, str):
+        return [s.strip().lower() for s in raw.split(",") if s.strip()]
+    return [str(raw).strip().lower()]
 
 
 def _iter_outfit_items(outfit):
     """Yields every non-null clothing item dict in an outfit."""
+    if not isinstance(outfit, dict):
+        return
     for key, value in outfit.items():
         if key == "accessories":
             for acc in (value or []):
@@ -50,21 +68,25 @@ def _iter_outfit_items(outfit):
 def _style_match_fraction(outfit, preferred_style):
     """
     Fraction of outfit items (that carry style tags) whose styles include
-    the preferred style. Range: 0.0 (no match) – 1.0 (all items match).
-    Returns 0.0 when preferred_style is empty.
+    the preferred style (case-insensitive, substring/word-compatible).
+    Range: 0.0 (no match) – 1.0 (all items match).
+    Returns 0.0 when preferred_style is empty or None.
     """
     if not preferred_style:
         return 0.0
 
-    target = preferred_style.lower()
+    target = str(preferred_style).strip().lower()
+    if not target:
+        return 0.0
+
     total = 0
     matched = 0
 
     for item in _iter_outfit_items(outfit):
-        item_styles = [s.lower() for s in item.get("styles", []) if s]
+        item_styles = _normalize_tags(item.get("styles"))
         if item_styles:
             total += 1
-            if target in item_styles:
+            if any(target == s or target in s or s in target for s in item_styles):
                 matched += 1
 
     return matched / total if total > 0 else 0.0
@@ -73,81 +95,147 @@ def _style_match_fraction(outfit, preferred_style):
 def _color_match_fraction(outfit, preferred_color):
     """
     Fraction of outfit items (that carry color tags) whose colors include
-    the preferred color. Range: 0.0 (no match) – 1.0 (all items match).
-    Returns 0.0 when preferred_color is empty.
+    the preferred color (case-insensitive, substring/word-compatible).
+    Range: 0.0 (no match) – 1.0 (all items match).
+    Returns 0.0 when preferred_color is empty or None.
     """
     if not preferred_color:
         return 0.0
 
-    target = preferred_color.lower()
+    target = str(preferred_color).strip().lower()
+    if not target:
+        return 0.0
+
     total = 0
     matched = 0
 
     for item in _iter_outfit_items(outfit):
-        item_colors = [c.lower() for c in item.get("colors", []) if c]
+        item_colors = _normalize_tags(item.get("colors"))
         if item_colors:
             total += 1
-            if target in item_colors:
+            if any(target == c or target in c or c in target for c in item_colors):
                 matched += 1
 
     return matched / total if total > 0 else 0.0
 
 
-def _apply_preference_boost(ranked_outfits, preferred_style, preferred_color):
+def _apply_preference_boost(
+    ranked_outfits,
+    preferred_style="",
+    preferred_color="",
+    explicit_style=None,
+    explicit_color=None,
+    explicit_boost=0.35,
+):
     """
     Adds outfit-level style and color preference scores on top of the ML
     score produced by rank_outfits(), then re-sorts by the final score.
 
     If neither preference is set, the list is returned unchanged (no-op).
 
-    Formula:
-        style_boost = _style_match_fraction(outfit) * _STYLE_BOOST_MAX
-        color_boost = _color_match_fraction(outfit) * _COLOR_BOOST_MAX
-        final_score = ml_score + style_boost + color_boost
+    For EXPLICIT preferences (user actively chose style/color in the UI):
+        boost = explicit_boost_max  if ANY item in outfit matches the preference
+        boost = 0.0                 if NO item matches
+        This binary approach guarantees matching outfits always rise to #1
+        regardless of how large the ML score gap is (max observed gap ~0.27,
+        explicit_boost_max = 0.35 reliably overcomes it).
 
-    Boosts are proportional to how strongly the complete outfit matches the
-    preference, so partial matches still rise above no-match outfits.
-
-    Args:
-        ranked_outfits (list[dict]): Output of rank_outfits() — each entry
-            has keys "outfit" and "score".
-        preferred_style (str): User's preferred style tag, or empty string.
-        preferred_color (str): User's preferred color tag, or empty string.
-
-    Returns:
-        list[dict]: Re-sorted list with final scores. Order is the true
-            recommendation order.
+    For BACKGROUND preferences (from user history, not explicitly chosen):
+        boost = match_fraction x background_boost_max
+        (proportional, softer -- these are hints not commands)
     """
-    if not preferred_style and not preferred_color:
+    pref_style_clean = str(preferred_style or "").strip()
+    pref_color_clean = str(preferred_color or "").strip()
+
+    if not pref_style_clean and not pref_color_clean:
         return ranked_outfits
+
+    # Coerce explicit_boost safely to float
+    try:
+        boost_ceiling = float(explicit_boost) if explicit_boost is not None else _EXPLICIT_BOOST_MAX
+    except (ValueError, TypeError):
+        boost_ceiling = _EXPLICIT_BOOST_MAX
+
+    # Coerce explicit flags safely
+    if isinstance(explicit_style, str):
+        is_exp_style = explicit_style.strip().lower() in ("true", "1", "yes")
+    elif explicit_style is not None:
+        is_exp_style = bool(explicit_style)
+    else:
+        is_exp_style = bool(pref_style_clean)
+
+    if isinstance(explicit_color, str):
+        is_exp_color = explicit_color.strip().lower() in ("true", "1", "yes")
+    elif explicit_color is not None:
+        is_exp_color = bool(explicit_color)
+    else:
+        is_exp_color = bool(pref_color_clean)
+
+    style_boost_max = boost_ceiling if is_exp_style else _STYLE_BOOST_MAX
+    color_boost_max = boost_ceiling if is_exp_color else _COLOR_BOOST_MAX
 
     boosted = []
     for entry in ranked_outfits:
         outfit = entry["outfit"]
         ml_score = entry["score"]
 
-        style_boost = _style_match_fraction(outfit, preferred_style) * _STYLE_BOOST_MAX
-        color_boost = _color_match_fraction(outfit, preferred_color) * _COLOR_BOOST_MAX
+        if is_exp_style and pref_style_clean:
+            # Binary: full boost if ANY item in outfit matches preferred style
+            has_style_match = any(
+                any(pref_style_clean == s or pref_style_clean in s or s in pref_style_clean
+                    for s in _normalize_tags(item.get("styles")))
+                for item in _iter_outfit_items(outfit)
+            )
+            style_boost = style_boost_max if has_style_match else 0.0
+        else:
+            # Background: proportional fractional boost
+            style_boost = _style_match_fraction(outfit, pref_style_clean) * style_boost_max
+
+        if is_exp_color and pref_color_clean:
+            # Binary: full boost if ANY item in outfit matches preferred color
+            has_color_match = any(
+                any(pref_color_clean == c or pref_color_clean in c or c in pref_color_clean
+                    for c in _normalize_tags(item.get("colors")))
+                for item in _iter_outfit_items(outfit)
+            )
+            color_boost = color_boost_max if has_color_match else 0.0
+        else:
+            # Background: proportional fractional boost
+            color_boost = _color_match_fraction(outfit, pref_color_clean) * color_boost_max
 
         boosted.append({
             "outfit": outfit,
             "score": round(ml_score + style_boost + color_boost, 4),
         })
 
-    # Re-sort by final score descending — this IS the final recommendation order
+    # Re-sort by final score descending
     boosted.sort(key=lambda x: x["score"], reverse=True)
     return boosted
 
 
-def _apply_disliked_penalties(ranked_outfits, disliked_colors, disliked_styles):
+def _apply_disliked_penalties(
+    ranked_outfits,
+    disliked_colors,
+    disliked_styles,
+    preferred_color="",
+    preferred_style="",
+):
     """
     Applies penalties for disliked colors and styles to outfit scores.
+    If preferred_style is set, that style is NOT in disliked_styles.
+    Similarly for preferred_color.
     """
-    if not disliked_colors and not disliked_styles:
-        return ranked_outfits
+    pref_c = str(preferred_color or "").strip().lower()
+    pref_s = str(preferred_style or "").strip().lower()
 
-    disliked_c_set = {c.lower() for c in disliked_colors if c}
-    disliked_s_set = {s.lower() for s in disliked_styles if s}
+    disliked_c_set = {
+        c for c in _normalize_tags(disliked_colors)
+        if c and c != pref_c
+    }
+    disliked_s_set = {
+        s for s in _normalize_tags(disliked_styles)
+        if s and s != pref_s
+    }
 
     if not disliked_c_set and not disliked_s_set:
         return ranked_outfits
@@ -159,11 +247,11 @@ def _apply_disliked_penalties(ranked_outfits, disliked_colors, disliked_styles):
         penalty = 0.0
 
         for item in _iter_outfit_items(outfit):
-            item_colors = [c.lower() for c in item.get("colors", []) if c]
+            item_colors = _normalize_tags(item.get("colors"))
             color_matches = sum(1 for c in item_colors if c in disliked_c_set)
             penalty += 0.05 * color_matches
 
-            item_styles = [s.lower() for s in item.get("styles", []) if s]
+            item_styles = _normalize_tags(item.get("styles"))
             style_matches = sum(1 for s in item_styles if s in disliked_s_set)
             penalty += 0.05 * style_matches
 
@@ -192,7 +280,8 @@ def recommend_outfits(wardrobe, weather, user_preferences, user_history):
         wardrobe         (list)
         weather          (dict): must contain "season"
         user_preferences (dict): may contain "occasion", "preferred_style",
-                                 "preferred_color"
+                                 "preferred_color", "explicit_style",
+                                 "explicit_color", "explicit_boost"
         user_history     (dict)
 
     Returns:
@@ -227,17 +316,28 @@ def recommend_outfits(wardrobe, weather, user_preferences, user_history):
         user_history=user_history,
     )
 
+    pref_style = str(user_preferences.get("preferred_style") or "").strip()
+    pref_color = str(user_preferences.get("preferred_color") or "").strip()
+    explicit_style = user_preferences.get("explicit_style")
+    explicit_color = user_preferences.get("explicit_color")
+    explicit_boost = user_preferences.get("explicit_boost", _EXPLICIT_BOOST_MAX)
+
     # Step 4 — Apply soft Style + Color preference boost, then re-sort
     ranked_outfits = _apply_preference_boost(
         ranked_outfits,
-        preferred_style=user_preferences.get("preferred_style", ""),
-        preferred_color=user_preferences.get("preferred_color", ""),
+        preferred_style=pref_style,
+        preferred_color=pref_color,
+        explicit_style=explicit_style,
+        explicit_color=explicit_color,
+        explicit_boost=explicit_boost,
     )
 
     ranked_outfits = _apply_disliked_penalties(
         ranked_outfits,
         disliked_colors=user_preferences.get("disliked_colors", []),
         disliked_styles=user_preferences.get("disliked_styles", []),
+        preferred_color=pref_color,
+        preferred_style=pref_style,
     )
 
     return ranked_outfits

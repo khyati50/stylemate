@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BarChart2, RefreshCw } from "lucide-react";
 import AuthNavbar from "../components/AuthNavbar";
-import Toast from "../components/Toast";
 import { API_BASE_URL } from "../config/api";
 
 // ---------------------------------------------------------------------------
@@ -81,14 +80,9 @@ function GapAnalysis() {
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [toast, setToast] = useState(null); // { message, variant }
   const [showLowVersatility, setShowLowVersatility] = useState(false);
 
   const navigate = useNavigate();
-
-  const showToast = (message, variant = "success") => {
-    setToast({ message, variant });
-  };
 
   async function fetchAnalysis(forceRefresh = false) {
     setLoading(true);
@@ -128,7 +122,9 @@ function GapAnalysis() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchAnalysis();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const score = analysis ? computeHealthScore(analysis) : null;
@@ -431,15 +427,6 @@ function GapAnalysis() {
           </div>
         )}
       </div>
-
-      {/* Toast */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          variant={toast.variant}
-          onClose={() => setToast(null)}
-        />
-      )}
     </div>
   );
 }

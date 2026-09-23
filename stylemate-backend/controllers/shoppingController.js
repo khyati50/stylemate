@@ -128,6 +128,37 @@ function parsePrice(priceStr) {
 }
 
 /**
+ * Deduplicates product listings by base title (removing bracketed sizes, brands, units)
+ * Handles missing, non-string, or malformed items gracefully without throwing.
+ */
+function deduplicateProducts(products, maxCount = 3) {
+  if (!Array.isArray(products)) return [];
+  const seen = new Set();
+  const unique = [];
+
+  for (const item of products) {
+    if (!item || typeof item !== "object" || typeof item.title !== "string") continue;
+    const trimmedTitle = item.title.trim();
+    if (!trimmedTitle) continue;
+
+    const cleanTitle = trimmedTitle
+      .toLowerCase()
+      .replace(/\([^)]*\)/g, "")
+      .replace(/\b(by\s+\w+|size\s+\d+|uk\s*\d+|eu\s*\d+)\b/gi, "")
+      .replace(/[^a-z0-9]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const key = cleanTitle.split(" ").slice(0, 4).join(" ");
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    unique.push(item);
+    if (unique.length >= maxCount) break;
+  }
+  return unique;
+}
+
+/**
  * Calls SerpAPI Google Shopping with persistent 7-day caching.
  * If query was executed previously, returns results instantly with 0 SerpAPI credits used!
  */
@@ -178,7 +209,7 @@ function serpApiSearch(query, maxResults = 3) {
                 item.title &&
                 parsePrice(item.price) <= 15000
             )
-            .slice(0, 6) // store up to 6 in cache for future depth
+            .slice(0, 10) // store up to 10 in cache for future depth
             .map((item) => ({
               title: item.title,
               source: item.source || "Online Store",
@@ -235,105 +266,67 @@ function serpApiSearch(query, maxResults = 3) {
  *   buildQuery  - (gender, favoriteColors) => string. Returns SerpAPI search query.
  */
 const GAP_DEFINITIONS = [
-  // LAYERS
+  // STAPLES & BASICS
   {
-    id: "blazer",
-    label: "Blazers & Structure",
-    type: "layers",
-    detectGap: (w, _g) => !w.some((i) => /blazer|suit jacket/i.test(i.name)),
-    buildQuery: (gender, colors) => {
-      const safeColors = ["black", "white", "beige", "navy", "grey", "cream"];
-      const color = colors.find((c) => safeColors.includes(c.toLowerCase())) || "beige";
-      return gender === "women" ? `women ${color} blazer` : `men ${color} blazer`;
-    },
+    id: "crop_tops",
+    label: "Trendy Crop Tops & Ribbed Fits",
+    type: "staples",
+    detectGap: () => true, // Always allow browsing diverse styles
+    buildQuery: (gender, _colors) =>
+      gender === "women" ? "women trendy crop top" : "men oversized t shirt",
   },
   {
-    id: "bomber_jacket",
-    label: "Casual Outerwear",
-    type: "layers",
-    detectGap: (w, _g) => !w.some((i) => /bomber|jacket|cardigan|coat/i.test(i.name)),
+    id: "linen_shirts",
+    label: "Breezy Linen & Relaxed Shirts",
+    type: "staples",
+    detectGap: (w) => !w.some((i) => /linen/i.test(i.name)),
     buildQuery: (gender, _colors) =>
-      gender === "women" ? "women bomber jacket" : "men bomber jacket",
+      gender === "women" ? "women relaxed linen shirt" : "men casual linen shirt",
+  },
+  {
+    id: "tailored_trousers",
+    label: "Tailored Trousers & Flared Pants",
+    type: "staples",
+    detectGap: () => true,
+    buildQuery: (gender, _colors) =>
+      gender === "women" ? "women high waist wide leg trousers" : "men tailored chinos",
+  },
+  {
+    id: "essential_denim",
+    label: "Everyday Denim & Straight Jeans",
+    type: "staples",
+    detectGap: (w) => !w.some((i) => /jean/i.test(i.name)),
+    buildQuery: (gender, _colors) =>
+      gender === "women" ? "women straight leg jeans" : "men slim fit jeans",
   },
 
-  // SHOES
+  // OCCASION SOLVERS
   {
-    id: "white_sneakers",
-    label: "Everyday Sneakers",
-    type: "shoes",
-    detectGap: (w, _g) =>
-      !w.some(
-        (i) =>
-          /sneaker/i.test(i.name) &&
-          (i.colors || []).some((c) => /white/i.test(c))
-      ),
-    buildQuery: (gender, _colors) =>
-      gender === "women" ? "women white sneakers" : "men white sneakers",
-  },
-  {
-    id: "loafers",
-    label: "Smart Loafers",
-    type: "shoes",
-    detectGap: (w, _g) => !w.some((i) => /loafer|mojari/i.test(i.name)),
-    buildQuery: (gender, _colors) =>
-      gender === "women" ? "women loafers" : "men loafers",
-  },
-  {
-    id: "heels",
-    label: "Evening Heels",
-    type: "shoes",
-    detectGap: (w, gender) =>
-      gender === "women" && !w.some((i) => /heel/i.test(i.name)),
-    buildQuery: (_gender, _colors) => "women block heels",
-  },
-
-  // STAPLES
-  {
-    id: "linen_shirt",
-    label: "Linen Shirt",
-    type: "staples",
-    detectGap: (w, _g) =>
-      !w.some((i) => /linen/i.test(i.name) && /shirt/i.test(i.name)),
-    buildQuery: (gender, _colors) =>
-      gender === "women" ? "women linen shirt" : "men linen shirt",
-  },
-  {
-    id: "chinos_trousers",
-    label: "Tailored Trousers",
-    type: "staples",
-    detectGap: (w, _g) => !w.some((i) => /chino|trouser/i.test(i.name)),
-    buildQuery: (gender, _colors) =>
-      gender === "women" ? "women wide leg trousers" : "men chinos",
-  },
-  {
-    id: "dark_jeans",
-    label: "Dark Denim Jeans",
-    type: "staples",
-    detectGap: (w, _g) => !w.some((i) => /jean/i.test(i.name)),
-    buildQuery: (gender, _colors) =>
-      gender === "women" ? "women dark blue jeans" : "men dark blue jeans",
-  },
-
-  // OCCASIONS
-  {
-    id: "slip_dress",
-    label: "Slip Dress",
+    id: "slip_dresses",
+    label: "Midi & Satin Slip Dresses",
     type: "occasions",
-    detectGap: (w, gender) =>
-      gender === "women" && !w.some((i) => /dress|slip/i.test(i.name)),
+    detectGap: (w, gender) => gender === "women",
     buildQuery: (_gender, colors) => {
-      const safeColors = ["black", "white", "beige", "red", "pink", "green", "blue", "grey"];
-      const color = colors.find((c) => safeColors.includes(c.toLowerCase())) || "black";
-      return `women ${color} satin slip dress`;
+      const safeColors = ["black", "burgundy", "emerald", "beige", "navy", "red"];
+      const color = colors.find((c) => safeColors.includes(c.toLowerCase())) || "satin";
+      return `women ${color} slip midi dress`;
     },
   },
   {
-    id: "crossbody_bag",
-    label: "Everyday Bag",
+    id: "party_evening",
+    label: "Evening & Statement Tops",
     type: "occasions",
-    detectGap: (w, _g) => !w.some((i) => /bag/i.test(i.name)),
+    detectGap: () => true,
     buildQuery: (gender, _colors) =>
-      gender === "women" ? "women crossbody bag" : "men sling bag",
+      gender === "women" ? "women party wear evening top" : "men party wear shirt",
+  },
+  {
+    id: "everyday_bags",
+    label: "Structured & Crossbody Bags",
+    type: "occasions",
+    detectGap: () => true,
+    buildQuery: (gender, _colors) =>
+      gender === "women" ? "women crossbody bag" : "men leather sling bag",
   },
 ];
 
@@ -357,6 +350,7 @@ const getShoppingRecommendations = async (req, res) => {
     const naturalFabricsOnly =
       req.query.naturalFabricsOnly === "true" ||
       req.query.qualityTier === "natural_fabrics";
+    const searchQuery = (req.query.q || req.query.search || "").trim();
 
     // 1. Fetch wardrobe
     let wardrobeModels = await ClothingItem.findAll({
@@ -380,60 +374,104 @@ const getShoppingRecommendations = async (req, res) => {
     }
 
     // 4. Wardrobe audit booleans
-    const hasBlazer = wardrobe.some((i) => /blazer|suit jacket/i.test(i.name));
-    const hasWhiteSneakers = wardrobe.some(
-      (i) =>
-        /sneaker/i.test(i.name) &&
-        (i.colors || []).some((c) => /white/i.test(c))
-    );
-    const hasLoafers = wardrobe.some((i) => /loafer|mojari/i.test(i.name));
+    const hasCropTop = wardrobe.some((i) => /crop|tee|t-shirt/i.test(i.name));
     const hasLinenShirt = wardrobe.some(
       (i) => /linen/i.test(i.name) && /shirt/i.test(i.name)
     );
-    const hasChinos = wardrobe.some((i) => /chino|trouser/i.test(i.name));
-    const hasDarkJeans = wardrobe.some((i) => /jean/i.test(i.name));
+    const hasTrousers = wardrobe.some((i) => /trouser|pant|chino/i.test(i.name));
+    const hasJeans = wardrobe.some((i) => /jean/i.test(i.name));
     const hasDress = wardrobe.some((i) => /dress|slip/i.test(i.name));
-    const hasHeels = wardrobe.some((i) => /heel/i.test(i.name));
+    const hasPartyTop = wardrobe.some((i) => /party|evening|top/i.test(i.name));
     const hasBag = wardrobe.some((i) => /bag/i.test(i.name));
 
     const wardrobeAudit = {
       totalItems: wardrobe.length,
-      hasBlazer,
-      hasWhiteSneakers,
-      hasLoafers,
+      hasCropTop,
       hasLinenShirt,
-      hasChinos,
-      hasDarkJeans,
+      hasTrousers,
+      hasJeans,
       hasDress,
-      hasHeels,
+      hasPartyTop,
       hasBag,
     };
 
-    // 5. Determine active gaps
-    let activeGaps = GAP_DEFINITIONS.filter((gap) => {
-      if (filter !== "all" && gap.type !== filter) return false;
-      return gap.detectGap(wardrobe, selectedGender);
-    });
+    // 5. Handle Search Query if present
+    if (searchQuery) {
+      const cleanSearch = searchQuery
+        .replace(/\p{Emoji}/gu, "")
+        .replace(/\b(women|men)\b/gi, "")
+        .replace(/\s+/g, " ")
+        .trim();
+      const query = `${selectedGender} ${cleanSearch || searchQuery} India`;
+      const rawResults = await serpApiSearch(query, 10);
+      const products = deduplicateProducts(rawResults, 6);
 
-    // Fallback: if user has everything, show all items for the selected filter
-    if (activeGaps.length === 0) {
-      activeGaps = GAP_DEFINITIONS.filter((gap) => {
-        if (filter !== "all" && gap.type !== filter) return false;
-        return true;
+      return res.status(200).json({
+        gender: selectedGender,
+        detectedGender,
+        selectedGender,
+        wardrobeAudit,
+        totalWardrobeCount: wardrobe.length,
+        recommendations: [
+          {
+            gapCategory: "search",
+            gapLabel: `Search Results for "${searchQuery}"`,
+            gapType: "search",
+            searchQuery: query,
+            products,
+          },
+        ],
+        filtersApplied: {
+          filter,
+          naturalFabricsOnly,
+          gender: selectedGender,
+          searchQuery,
+        },
       });
     }
 
-    // Cap at top 4 gaps max to conserve SerpAPI free tier quota
-    activeGaps = activeGaps.slice(0, 4);
+    // 6. Handle Curated Filter Recommendations
+    let activeGaps = [];
+    if (filter === "staples") {
+      activeGaps = GAP_DEFINITIONS.filter(
+        (gap) => gap.type === "staples" && gap.detectGap(wardrobe, selectedGender)
+      );
+      if (activeGaps.length === 0) {
+        activeGaps = GAP_DEFINITIONS.filter((gap) => gap.type === "staples");
+      }
+    } else if (filter === "occasions") {
+      activeGaps = GAP_DEFINITIONS.filter(
+        (gap) => gap.type === "occasions" && gap.detectGap(wardrobe, selectedGender)
+      );
+      if (activeGaps.length === 0) {
+        activeGaps = GAP_DEFINITIONS.filter((gap) => gap.type === "occasions");
+      }
+    } else {
+      // filter === "all"
+      let staples = GAP_DEFINITIONS.filter(
+        (gap) => gap.type === "staples" && gap.detectGap(wardrobe, selectedGender)
+      );
+      if (staples.length === 0) {
+        staples = GAP_DEFINITIONS.filter((gap) => gap.type === "staples");
+      }
 
-    // 6. Build queries and fetch from SerpAPI in parallel
+      let occasions = GAP_DEFINITIONS.filter(
+        (gap) => gap.type === "occasions" && gap.detectGap(wardrobe, selectedGender)
+      );
+      if (occasions.length === 0) {
+        occasions = GAP_DEFINITIONS.filter((gap) => gap.type === "occasions");
+      }
+
+      activeGaps = [...staples.slice(0, 2), ...occasions.slice(0, 2)];
+    }
+
     const gapQueries = activeGaps.map((gap) => ({
       gap,
       query: gap.buildQuery(selectedGender, favoriteColors),
     }));
 
     const searchResults = await Promise.allSettled(
-      gapQueries.map(({ query }) => serpApiSearch(query, 3))
+      gapQueries.map(({ query }) => serpApiSearch(query, 6))
     );
 
     // 7. Assemble response
@@ -442,10 +480,11 @@ const getShoppingRecommendations = async (req, res) => {
       const { gap, query } = gapQueries[i];
       const result = searchResults[i];
 
-      let products = [];
+      let rawProducts = [];
       if (result.status === "fulfilled") {
-        products = result.value;
+        rawProducts = result.value;
       }
+      const products = deduplicateProducts(rawProducts, 3);
       // Skip gaps where SerpAPI returned no valid products
       if (products.length === 0) continue;
 
@@ -552,4 +591,5 @@ const markBought = async (req, res) => {
 module.exports = {
   getShoppingRecommendations,
   markBought,
+  deduplicateProducts,
 };

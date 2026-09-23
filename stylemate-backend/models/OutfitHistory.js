@@ -16,6 +16,11 @@ const OutfitHistory = db.define("OutfitHistory", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+}, {
+  indexes: [
+    { fields: ["userId"] },
+    { fields: ["userId", "createdAt"] },
+  ],
 });
 
 module.exports = OutfitHistory;

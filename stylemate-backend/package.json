@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon app.js"
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test:qa": "node scripts/e2e_qa_verification.js"
   },
   "keywords": [],
   "author": "",

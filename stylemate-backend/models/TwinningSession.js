@@ -50,6 +50,11 @@ const TwinningSession = db.define("TwinningSession", {
   },
 }, {
   timestamps: true,
+  indexes: [
+    { fields: ["sessionCode"], unique: true },
+    { fields: ["initiatorId"] },
+    { fields: ["partnerId"] },
+  ],
 });
 
 module.exports = TwinningSession;

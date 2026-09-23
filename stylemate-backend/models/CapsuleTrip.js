@@ -39,6 +39,10 @@ const CapsuleTrip = db.define("CapsuleTrip", {
     type: DataTypes.JSON,
     allowNull: true,
   },
+}, {
+  indexes: [
+    { fields: ["userId"] },
+  ],
 });
 
 module.exports = CapsuleTrip;

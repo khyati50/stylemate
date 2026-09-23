@@ -102,7 +102,7 @@ const user1Pieces = [
     name: "Little Black Dress",
     category: "Full Body",
     colors: ["black"],
-    styles: ["formal", "smart", "party"],
+    styles: ["formal", "smart", "party", "chic"],
     occasions: ["date", "party", "dinner", "casual"],
     seasons: ["all"],
     imageUrl: "uploads/coord-user1-black-dress.jpg",

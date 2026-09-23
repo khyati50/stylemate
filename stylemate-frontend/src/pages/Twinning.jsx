@@ -16,7 +16,7 @@ import {
 import AuthNavbar from "../components/AuthNavbar";
 import OutfitCard from "../components/OutfitCard";
 import Toast from "../components/Toast";
-import { API_BASE_URL, getImageUrl } from "../config/api";
+import { API_BASE_URL } from "../config/api";
 
 const OCCASIONS = [
   "Casual",
@@ -222,7 +222,9 @@ function Twinning() {
     try {
       const payload = JSON.parse(atob(token.split(".")[1]));
       currentUserId = payload.id;
-    } catch (_) {}
+    } catch {
+      // ignore
+    }
 
     const targetSession =
       session?.sessionCode === codeToDelete

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
-import { API_BASE_URL, getImageUrl } from "../config/api";
+import { getImageUrl } from "../config/api";
 
 function ClothingDetailModal({ item, onClose, onEdit, onDelete }) {
   const [isAnimating, setIsAnimating] = useState(false);

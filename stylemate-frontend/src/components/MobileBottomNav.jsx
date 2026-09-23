@@ -50,6 +50,7 @@ function MobileBottomNav() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    sessionStorage.removeItem("stylemate_app_launched");
     setMoreOpen(false);
     navigate("/login");
   };

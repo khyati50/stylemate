@@ -43,6 +43,10 @@ const ChatInteractionLog = db.define("ChatInteractionLog", {
     type: DataTypes.STRING,
     allowNull: true,
   },
+}, {
+  indexes: [
+    { fields: ["userId"] },
+  ],
 });
 
 module.exports = ChatInteractionLog;

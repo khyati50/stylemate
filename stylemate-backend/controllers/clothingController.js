@@ -1,12 +1,7 @@
 const path = require("path");
 const fs = require("fs");
-const { spawn } = require("child_process");
 const ClothingItem = require("../models/ClothingItem");
-
-const AI_DIR = path.resolve(__dirname, "../../ai");
-const SCRIPT_PATH = path.join(AI_DIR, "image_analyzer.py");
-const VENV_PYTHON = path.join(AI_DIR, "venv/bin/python");
-const PYTHON_CMD = fs.existsSync(VENV_PYTHON) ? VENV_PYTHON : "python3";
+const { runPythonScript } = require("../utils/pythonRunner");
 
 const addClothingItem = async (req, res) => {
   try {
@@ -73,20 +68,34 @@ const deleteClothingItem = async (req, res) => {
 
     if (!clothingItem) {
       return res.status(404).json({
-        message: "clothing item did not found",
+        message: "Clothing item not found.",
       });
     }
 
     if (clothingItem.userId !== userId) {
       return res.status(403).json({
-        message: "not authorized to delete this item",
+        message: "Not authorized to delete this item.",
       });
+    }
+
+    // Delete the associated image file from disk only if it resides within the safe uploads directory
+    if (clothingItem.imageUrl && typeof clothingItem.imageUrl === "string") {
+      const uploadsDir = path.resolve(__dirname, "../uploads");
+      const imagePath = path.resolve(__dirname, "../", clothingItem.imageUrl);
+      if (
+        imagePath.startsWith(uploadsDir + path.sep) &&
+        fs.existsSync(imagePath)
+      ) {
+        fs.unlink(imagePath, (err) => {
+          if (err) console.error("Failed to delete image file:", err.message);
+        });
+      }
     }
 
     await clothingItem.destroy();
 
     return res.status(200).json({
-      message: "deleted successfully",
+      message: "Item deleted successfully.",
     });
   } catch (error) {
     console.error(error);
@@ -126,7 +135,14 @@ const updateClothingItem = async (req, res) => {
     if (styles) clothingItem.styles = styles;
     if (seasons) clothingItem.seasons = seasons;
     if (occasions) clothingItem.occasions = occasions;
-    if (imageUrl) clothingItem.imageUrl = imageUrl;
+    if (imageUrl) {
+      // Validate imageUrl to prevent arbitrary path traversal
+      const isHttp = /^https?:\/\//i.test(imageUrl);
+      const isRelativeUpload = /^uploads[/\\][^/\\]+/i.test(imageUrl);
+      if (isHttp || isRelativeUpload) {
+        clothingItem.imageUrl = imageUrl;
+      }
+    }
 
     await clothingItem.save();
 
@@ -152,65 +168,25 @@ const analyzeClothingImage = async (req, res) => {
   const imagePath = path.resolve(req.file.path);
 
   try {
-    const pythonProcess = spawn(PYTHON_CMD, [SCRIPT_PATH, imagePath], {
-      cwd: AI_DIR,
-      env: { ...process.env },
+    const result = await runPythonScript({
+      scriptName: "image_analyzer.py",
+      args: [imagePath],
+      timeoutMs: 45_000,
     });
 
-    let stdoutData = "";
-    let stderrData = "";
+    // Clean up uploaded file
+    if (fs.existsSync(imagePath)) {
+      fs.unlink(imagePath, () => {});
+    }
 
-    pythonProcess.stdout.on("data", (data) => {
-      stdoutData += data.toString();
-    });
-
-    pythonProcess.stderr.on("data", (data) => {
-      stderrData += data.toString();
-    });
-
-    pythonProcess.on("close", (code) => {
-      // Remove temporary upload file
-      if (fs.existsSync(imagePath)) {
-        fs.unlink(imagePath, () => {});
-      }
-
-      if (code !== 0) {
-        console.error(`image_analyzer.py exited with code ${code}. Stderr: ${stderrData}`);
-        return res.status(500).json({
-          message: "Failed to analyze image.",
-          error: stderrData || "Analyzer process error",
-        });
-      }
-
-      try {
-        const result = JSON.parse(stdoutData.trim());
-        return res.status(200).json(result);
-      } catch (err) {
-        console.error("Failed to parse image analyzer output:", stdoutData);
-        return res.status(500).json({
-          message: "Failed to parse analysis results.",
-          error: err.message,
-        });
-      }
-    });
-
-    pythonProcess.on("error", (err) => {
-      if (fs.existsSync(imagePath)) {
-        fs.unlink(imagePath, () => {});
-      }
-      console.error("Failed to spawn image_analyzer.py:", err);
-      return res.status(500).json({
-        message: "Failed to start image analyzer process.",
-        error: err.message,
-      });
-    });
+    return res.status(200).json(result);
   } catch (error) {
     console.error("analyzeClothingImage Error:", error);
     if (fs.existsSync(imagePath)) {
       fs.unlink(imagePath, () => {});
     }
     return res.status(500).json({
-      message: "Internal Server Error",
+      message: error.message || "Failed to analyze image.",
     });
   }
 };

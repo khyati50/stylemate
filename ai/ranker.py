@@ -58,21 +58,32 @@ def rank_outfits(
     user_history
 ):
     """
-    Ranks all outfits from best to worst.
+    Ranks all outfits from best to worst using batch inference.
     """
+    outfits = list(outfits) if outfits else []
+    if not outfits:
+        return []
 
-    ranked_outfits = []
-
-    for outfit in outfits:
-
-        result = score_outfit(
-            outfit,
-            weather,
-            user_preferences,
-            user_history
+    feature_rows = [
+        extract_features(
+            outfit=outfit,
+            weather=weather,
+            user_preferences=user_preferences,
+            user_history=user_history
         )
+        for outfit in outfits
+    ]
 
-        ranked_outfits.append(result)
+    batch_df = pd.DataFrame(feature_rows)
+    scores = MODEL.predict(batch_df)
+
+    ranked_outfits = [
+        {
+            "outfit": outfit,
+            "score": round(float(score), 4)
+        }
+        for outfit, score in zip(outfits, scores)
+    ]
 
     ranked_outfits.sort(
         key=lambda x: x["score"],

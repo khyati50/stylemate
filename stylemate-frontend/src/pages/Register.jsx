@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { User, Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react";
-import registerHero from "../assets/registerHero.png";
+import registerHero from "../assets/registerHero.webp";
 import { API_BASE_URL } from "../config/api";
 
 function Register() {

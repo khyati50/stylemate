@@ -46,5 +46,11 @@ const ClothingItem = db.define("ClothingItem", {
     allowNull: false,
     defaultValue: "available",
   },
+}, {
+  indexes: [
+    { fields: ["userId"] },
+    { fields: ["userId", "category"] },
+    { fields: ["userId", "status"] },
+  ],
 });
 module.exports = ClothingItem;

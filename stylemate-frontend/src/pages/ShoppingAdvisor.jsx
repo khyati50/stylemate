@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   Sparkles,
   Check,
   ShoppingBag,
   Leaf,
-  Layers,
   ArrowRight,
-  Footprints,
   Tag,
+  Info,
+  Search,
+  X,
 } from "lucide-react";
 import AuthNavbar from "../components/AuthNavbar";
 import Toast from "../components/Toast";
@@ -17,24 +18,24 @@ import { API_BASE_URL } from "../config/api";
 const FILTER_PILLS = [
   { id: "all", label: "All Picks", icon: Sparkles },
   { id: "staples", label: "Staples & Basics", icon: Tag },
-  { id: "layers", label: "Blazers & Layers", icon: Layers },
-  { id: "shoes", label: "Footwear & Shoes", icon: Footprints },
   { id: "occasions", label: "Occasion Solvers", icon: Sparkles },
 ];
 
 function ShoppingAdvisor() {
   const navigate = useNavigate();
   const [recommendations, setRecommendations] = useState([]);
-  const [totalWardrobeCount, setTotalWardrobeCount] = useState(0);
   const [wardrobeAudit, setWardrobeAudit] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeFilter, setActiveFilter] = useState("all");
   const [naturalFabricsOnly, setNaturalFabricsOnly] = useState(true);
   const [selectedGender, setSelectedGender] = useState(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
   const [boughtMap, setBoughtMap] = useState({});
   const [submittingId, setSubmittingId] = useState(null);
   const [toast, setToast] = useState(null);
+  const genderInitialized = useRef(false);
 
   const showToast = (message, variant = "success") => {
     setToast({ message, variant });
@@ -56,6 +57,9 @@ function ShoppingAdvisor() {
       });
       if (selectedGender) {
         queryParams.set("gender", selectedGender);
+      }
+      if (submittedSearch) {
+        queryParams.set("q", submittedSearch);
       }
 
       const response = await fetch(
@@ -80,10 +84,10 @@ function ShoppingAdvisor() {
       }
 
       setRecommendations(data.recommendations || []);
-      setTotalWardrobeCount(data.totalWardrobeCount || data.wardrobeAudit?.totalItems || 0);
       setWardrobeAudit(data.wardrobeAudit || null);
       if (!selectedGender) {
         setSelectedGender(data.selectedGender || data.detectedGender || "women");
+        genderInitialized.current = true;
       }
     } catch (err) {
       console.error(err);
@@ -94,12 +98,34 @@ function ShoppingAdvisor() {
   };
 
   useEffect(() => {
+    // Skip re-fetch if selectedGender was just initialized from the first response
+    if (genderInitialized.current) {
+      genderInitialized.current = false;
+      return;
+    }
     fetchRecommendations();
-  }, [selectedGender, naturalFabricsOnly]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGender, naturalFabricsOnly, activeFilter, submittedSearch]);
 
-  // Filter pills filter client-side only — no extra API call
+  const handleSearchSubmit = (e) => {
+    if (e) e.preventDefault();
+    setSubmittedSearch(searchInput.trim());
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setSubmittedSearch("");
+  };
+
+  const handleChipClick = (chipText) => {
+    const clean = chipText.replace(/^[^\w\s]+/, "").trim();
+    setSearchInput(clean);
+    setSubmittedSearch(clean);
+  };
+
+  // Filter pills filter client-side only if no custom search active
   const filteredRecommendations =
-    activeFilter === "all"
+    submittedSearch || activeFilter === "all"
       ? recommendations
       : recommendations.filter((group) => group.gapType === activeFilter);
 
@@ -134,7 +160,6 @@ function ShoppingAdvisor() {
       }
 
       setBoughtMap((prev) => ({ ...prev, [key]: true }));
-      setTotalWardrobeCount((prev) => prev + 1);
       setWardrobeAudit((prev) =>
         prev ? { ...prev, totalItems: prev.totalItems + 1 } : null
       );
@@ -180,6 +205,77 @@ function ShoppingAdvisor() {
           </div>
         </div>
 
+        {/* Search Bar & Quick Suggestion Chips */}
+        <div className="mb-6 rounded-2xl bg-white border border-[#EAE5DD] p-4 sm:p-5 shadow-xs">
+          <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-2.5 items-center">
+            <div className="relative flex-1 w-full">
+              <Search
+                size={16}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8C8277]"
+              />
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search any piece (e.g. 'summer dress', 'crop top', 'linen pants', 'corset')..."
+                className="w-full rounded-xl bg-[#FAF7F2] border border-[#EAE5DD] pl-10 pr-10 py-2.5 text-xs sm:text-sm text-[#2E2E2E] placeholder-[#8C8277] focus:outline-none focus:border-[#8B6F47] focus:ring-1 focus:ring-[#8B6F47] transition"
+              />
+              {(searchInput || submittedSearch) && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#2E2E2E] p-1 rounded-full hover:bg-[#EAE5DD]/60 transition cursor-pointer"
+                  title="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+            <button
+              type="submit"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#8B6F47] hover:bg-[#735833] text-white px-5 py-2.5 text-xs sm:text-sm font-bold shadow-xs transition cursor-pointer"
+            >
+              <Search size={14} />
+              <span>Search</span>
+            </button>
+          </form>
+
+          {/* Quick Suggestion Chips */}
+          <div className="mt-3.5 flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-semibold text-[#8C8277] mr-1">
+              Quick Suggestions:
+            </span>
+            {["👗 Dresses", "✨ Crop Tops", "👚 Linen Shirts", "👖 Wide-Leg Trousers"].map((chip) => (
+              <button
+                key={chip}
+                type="button"
+                onClick={() => handleChipClick(chip)}
+                className="inline-flex items-center rounded-lg bg-[#FAF7F2] hover:bg-[#EAE5DD]/70 border border-[#EAE5DD] px-2.5 py-1 text-xs text-[#2E2E2E] font-medium transition cursor-pointer hover:border-[#8B6F47]/40 active:scale-95"
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+
+          {/* Active Search Badge */}
+          {submittedSearch && (
+            <div className="mt-3.5 pt-3 border-t border-[#EAE5DD]/60 flex items-center justify-between gap-2">
+              <div className="inline-flex items-center gap-1.5 text-xs text-[#2E2E2E]">
+                <span className="text-[#8C8277]">Showing results for:</span>
+                <span className="font-bold text-[#8B6F47]">"{submittedSearch}"</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#8B6F47] hover:text-[#735833] hover:underline cursor-pointer"
+              >
+                <X size={12} />
+                <span>Clear Search</span>
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Luxury Gender / Collection Switcher */}
         <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-[#EAE5DD]/50 border border-[#EAE5DD] w-fit mb-6 shadow-xs">
           <button
@@ -214,7 +310,13 @@ function ShoppingAdvisor() {
               return (
                 <button
                   key={pill.id}
-                  onClick={() => setActiveFilter(pill.id)}
+                  onClick={() => {
+                    setActiveFilter(pill.id);
+                    if (submittedSearch) {
+                      setSubmittedSearch("");
+                      setSearchInput("");
+                    }
+                  }}
                   className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
                     isActive
                       ? "bg-[#8B6F47] text-white shadow-sm"
@@ -293,10 +395,14 @@ function ShoppingAdvisor() {
           <div className="rounded-2xl border border-[#EAE5DD] bg-white p-12 text-center shadow-sm">
             <Info className="mx-auto h-10 w-10 text-gray-400 mb-3" />
             <h3 className="font-['Playfair_Display'] text-lg font-bold text-[#2E2E2E]">
-              No recommendations found for this filter
+              {submittedSearch
+                ? `No products found for "${submittedSearch}"`
+                : "No recommendations found for this filter"}
             </h3>
             <p className="mt-1 text-xs text-gray-500">
-              Try switching your category or toggling the natural fabric filter.
+              {submittedSearch
+                ? "Try searching for a different piece or clear your search to see wardrobe gaps."
+                : "Try switching your category or toggling the natural fabric filter."}
             </p>
           </div>
         )}
@@ -330,15 +436,15 @@ function ShoppingAdvisor() {
                 <div className="flex items-center gap-3 mb-5">
                   <div className="h-px flex-1 bg-[#EAE5DD]" />
                   <span className="rounded-full bg-[#8B6F47]/10 px-4 py-1.5 text-xs font-bold text-[#8B6F47] border border-[#8B6F47]/20 uppercase tracking-wider whitespace-nowrap">
-                    Fill Your Gap: {group.gapLabel}
+                    {group.gapType === "search" ? group.gapLabel : `Fill Your Gap: ${group.gapLabel}`}
                   </span>
                   <div className="h-px flex-1 bg-[#EAE5DD]" />
                 </div>
 
                 {/* 3-Column Product Card Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {group.products.map((product) => {
-                    const key = product.link;
+                  {group.products.map((product, pIdx) => {
+                    const key = product.link || `${group.gapCategory}-${product.title || "item"}-${pIdx}`;
                     const isBought = Boolean(boughtMap[key]);
                     const isSubmitting = submittingId === key;
 

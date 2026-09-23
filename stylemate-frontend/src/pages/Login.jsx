@@ -94,13 +94,14 @@ function Login() {
           )}
 
           <form
+            noValidate
             onSubmit={(e) => {
               e.preventDefault();
               HandleLogin();
             }}
             className="mt-5 sm:mt-8 space-y-3.5 sm:space-y-6"
           >
-            {/* Email */}
+            {/* Email / Username */}
             <div className="relative">
               <Mail
                 size={18}
@@ -108,8 +109,8 @@ function Login() {
               />
 
               <input
-                type="email"
-                placeholder="Email Address"
+                type="text"
+                placeholder="Email or Username"
                 required
                 value={formData.email}
                 onChange={(event) =>

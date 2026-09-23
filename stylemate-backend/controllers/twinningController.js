@@ -1,15 +1,8 @@
-const path = require("path");
-const fs = require("fs");
-const { spawn } = require("child_process");
 const { Op } = require("sequelize");
 const TwinningSession = require("../models/TwinningSession");
 const ClothingItem = require("../models/ClothingItem");
 const User = require("../models/User");
-
-const AI_DIR = path.resolve(__dirname, "../../ai");
-const SCRIPT_PATH = path.join(AI_DIR, "twinning.py");
-const VENV_PYTHON = path.join(AI_DIR, "venv/bin/python");
-const PYTHON_CMD = fs.existsSync(VENV_PYTHON) ? VENV_PYTHON : "python3";
+const { runPythonScript } = require("../utils/pythonRunner");
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
@@ -47,61 +40,6 @@ const normalizeOutfit = (raw) => {
       ? raw.accessories[0] || null
       : raw.accessories || null,
   };
-};
-
-/**
- * Spawns the Python twinning pipeline and communicates via stdin/stdout.
- */
-const runPythonTwinning = (inputData) => {
-  return new Promise((resolve, reject) => {
-    const pythonProcess = spawn(PYTHON_CMD, [SCRIPT_PATH], {
-      cwd: AI_DIR,
-    });
-
-    let stdoutData = "";
-    let stderrData = "";
-
-    pythonProcess.stdout.on("data", (data) => {
-      stdoutData += data.toString();
-    });
-
-    pythonProcess.stderr.on("data", (data) => {
-      stderrData += data.toString();
-    });
-
-    pythonProcess.on("close", (code) => {
-      if (code !== 0) {
-        let errorMessage = `Python process exited with code ${code}`;
-        try {
-          if (stdoutData.trim()) {
-            const parsedError = JSON.parse(stdoutData);
-            if (parsedError && parsedError.error) {
-              errorMessage = parsedError.error;
-            }
-          }
-        } catch (_) {
-          if (stderrData.trim()) {
-            errorMessage = stderrData.trim();
-          }
-        }
-        return reject(new Error(errorMessage));
-      }
-
-      try {
-        const result = JSON.parse(stdoutData);
-        resolve(result);
-      } catch (err) {
-        reject(new Error(`Failed to parse Python twinning output: ${err.message}`));
-      }
-    });
-
-    pythonProcess.on("error", (err) => {
-      reject(new Error(`Failed to start Python twinning process: ${err.message}`));
-    });
-
-    pythonProcess.stdin.write(JSON.stringify(inputData));
-    pythonProcess.stdin.end();
-  });
 };
 
 /**
@@ -259,7 +197,10 @@ const generateTwinning = async (req, res) => {
       season,
     };
 
-    const rawPairs = await runPythonTwinning(inputData);
+    const rawPairs = await runPythonScript({
+      scriptName: "twinning.py",
+      inputData,
+    });
 
     if (!rawPairs || rawPairs.length === 0) {
       return res.status(404).json({
@@ -477,6 +418,7 @@ module.exports = {
   createSession,
   joinSession,
   generateTwinning,
+  computeTwinningCoordination: generateTwinning,
   getSessionByCode,
   getMySessions,
   deleteSession,
