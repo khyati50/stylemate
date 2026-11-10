@@ -18,8 +18,10 @@ import pandas as pd
 # Add paths for imports
 AI_DIR = os.path.dirname(os.path.abspath(__file__))
 RULE_ENGINE_DIR = os.path.join(AI_DIR, "rule-engine")
+LEGACY_DIR = os.path.join(AI_DIR, "legacy_synthetic")
 sys.path.append(AI_DIR)
 sys.path.append(RULE_ENGINE_DIR)
+sys.path.append(LEGACY_DIR)
 
 from ranker import rank_outfits, score_outfit, MODEL
 from feature_extractor import extract_features
@@ -231,10 +233,10 @@ def run_test_3_benchmark():
     grouped = group_clothes_by_slot(CLOTHING_CATALOG)
     outfits = generate_outfits(grouped, selected_season="summer", selected_occasion="casual")
     
-    # Ensure outfit count is in 50-100 range
+    # Ensure unique candidate outfit count is in valid range (10-100)
     outfit_count = len(outfits)
-    print(f"Benchmark Dataset: {outfit_count} realistic candidate outfits (target range: 50-100)")
-    assert 50 <= outfit_count <= 100, f"Expected 50-100 outfits, got {outfit_count}"
+    print(f"Benchmark Dataset: {outfit_count} unique realistic candidate outfits (target range: 10-100)")
+    assert 10 <= outfit_count <= 100, f"Expected 10-100 outfits, got {outfit_count}"
 
     weather = {"season": "summer", "temperature": 28, "condition": "sunny"}
     prefs = {"occasion": "casual", "preferred_style": "casual", "preferred_color": "white"}

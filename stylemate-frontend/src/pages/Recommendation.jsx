@@ -4,7 +4,7 @@ import { Sparkles } from "lucide-react";
 import AuthNavbar from "../components/AuthNavbar";
 import OutfitCard from "../components/OutfitCard";
 import Toast from "../components/Toast";
-import { API_BASE_URL } from "../config/api";
+import { API_BASE_URL, getImageUrl } from "../config/api";
 
 function Recommendation() {
   const [occasion, setOccasion] = useState("");
@@ -33,6 +33,7 @@ function Recommendation() {
   const [style, setStyle] = useState("");
   const [color, setColor] = useState("");
   const [appliedPreferences, setAppliedPreferences] = useState({ style: "", color: "" });
+  const [selectedAccessories, setSelectedAccessories] = useState([]);
   const [toast, setToast] = useState(null); // { message, variant }
   const [userPreferences, setUserPreferences] = useState(null);
 
@@ -183,11 +184,41 @@ function Recommendation() {
 
   const recommendation = recommendations[currentIndex]?.outfit || null;
 
+  const availableAccessories = recommendation
+    ? Array.isArray(recommendation.accessories) && recommendation.accessories.length > 0
+      ? recommendation.accessories
+      : recommendation.accessory
+      ? [recommendation.accessory]
+      : []
+    : [];
+
+  useEffect(() => {
+    if (availableAccessories && availableAccessories.length > 0) {
+      setSelectedAccessories(availableAccessories);
+    } else {
+      setSelectedAccessories([]);
+    }
+  }, [currentIndex, recommendations]);
+
+  const toggleAccessorySelection = (acc) => {
+    setSelectedAccessories((prev) => {
+      const exists = prev.some((item) =>
+        item.id && acc.id ? item.id === acc.id : item.name === acc.name
+      );
+      if (exists) {
+        return prev.filter((item) =>
+          item.id && acc.id ? item.id !== acc.id : item.name !== acc.name
+        );
+      } else {
+        return [...prev, acc];
+      }
+    });
+  };
+
   const activeItemCount = recommendation
     ? (recommendation.fullBody ? 1 : (recommendation.top ? 1 : 0) + (recommendation.bottom ? 1 : 0)) +
       (recommendation.footwear ? 1 : 0) +
-      (recommendation.outerwear ? 1 : 0) +
-      (recommendation.accessory ? 1 : 0)
+      (recommendation.outerwear ? 1 : 0)
     : 0;
 
   const mobileGridClass =
@@ -203,6 +234,12 @@ function Recommendation() {
     try {
       const token = localStorage.getItem("token");
 
+      const outfitToSave = {
+        ...recommendation,
+        accessories: selectedAccessories,
+        accessory: selectedAccessories[0] || null,
+      };
+
       const response = await fetch(`${API_BASE_URL}/api/history`, {
         method: "POST",
         headers: {
@@ -210,7 +247,7 @@ function Recommendation() {
           authorization: token,
         },
         body: JSON.stringify({
-          outfit: recommendation,
+          outfit: outfitToSave,
           occasion,
         }),
       });
@@ -218,7 +255,11 @@ function Recommendation() {
       const data = await response.json();
 
       if (response.ok) {
-        showToast("Outfit added to history!");
+        showToast(
+          selectedAccessories.length > 0
+            ? `Outfit & ${selectedAccessories.length} accessories added to journal!`
+            : "Outfit added to journal!"
+        );
       } else {
         showToast(data.message, "error");
       }
@@ -711,15 +752,78 @@ function Recommendation() {
                   preferredColor={appliedPreferences.color}
                 />
               )}
-              {recommendation.accessory && (
-                <OutfitCard
-                  title="Accessory"
-                  item={recommendation.accessory}
-                  preferredStyle={appliedPreferences.style}
-                  preferredColor={appliedPreferences.color}
-                />
-              )}
             </div>
+
+            {/* Choose Your Accessories Section */}
+            {availableAccessories.length > 0 && (
+              <div className="mt-8 rounded-3xl border border-[#EAE5DD] bg-white p-5 md:p-7 shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-4 mb-4">
+                  <div>
+                    <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#8B6F47]">
+                      <Sparkles size={13} />
+                      <span>✦ Complete The Look · Accessories</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Tap any accessory you choose to wear with this outfit before saving to your journal.
+                    </p>
+                  </div>
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#FAF7F2] text-[#8B6F47] border border-[#EAE5DD] w-fit">
+                    {selectedAccessories.length} of {availableAccessories.length} selected
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {availableAccessories.map((acc, idx) => {
+                    const isSelected = selectedAccessories.some((item) =>
+                      item.id && acc.id ? item.id === acc.id : item.name === acc.name
+                    );
+
+                    return (
+                      <button
+                        type="button"
+                        key={idx}
+                        onClick={() => toggleAccessorySelection(acc)}
+                        className={`flex items-center gap-3.5 p-3 rounded-2xl border text-left transition-all duration-200 cursor-pointer ${
+                          isSelected
+                            ? "border-[#8B6F47] bg-[#FAF7F2] shadow-xs"
+                            : "border-gray-200 bg-white hover:border-gray-300 opacity-60"
+                        }`}
+                      >
+                        <div className="h-14 w-14 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-200/60">
+                          {acc.imageUrl ? (
+                            <img
+                              src={getImageUrl(acc.imageUrl)}
+                              alt={acc.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center text-[10px] text-gray-400 font-bold uppercase">
+                              Acc
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-['Playfair_Display'] text-sm font-bold text-[#2E2E2E] truncate">
+                            {acc.name}
+                          </h4>
+                          <p className="text-[11px] text-gray-500 capitalize truncate mt-0.5">
+                            {Array.isArray(acc.colors) ? acc.colors.join(", ") : acc.colors || "Neutral"}
+                          </p>
+                          <div className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider">
+                            {isSelected ? (
+                              <span className="text-[#8B6F47]">✓ Wearing</span>
+                            ) : (
+                              <span className="text-gray-400">+ Add</span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Why This Outfit? */}
             <div className="mt-6 rounded-2xl border border-[#EAE5DD] bg-[#FAF7F2] p-4">

@@ -110,7 +110,11 @@ function History() {
     }
     if (outfit.footwear) items.push({ slot: "Footwear", item: outfit.footwear });
     if (outfit.outerwear) items.push({ slot: "Outerwear", item: outfit.outerwear });
-    if (outfit.accessory) items.push({ slot: "Accessory", item: outfit.accessory });
+    if (Array.isArray(outfit.accessories) && outfit.accessories.length > 0) {
+      outfit.accessories.forEach((acc) => items.push({ slot: "Accessory", item: acc }));
+    } else if (outfit.accessory) {
+      items.push({ slot: "Accessory", item: outfit.accessory });
+    }
     return items;
   };
 
@@ -328,12 +332,21 @@ function History() {
                   />
                 )}
 
-                {selectedDetailEntry.outfit.accessory && (
+                {Array.isArray(selectedDetailEntry.outfit.accessories) &&
+                selectedDetailEntry.outfit.accessories.length > 0 ? (
+                  selectedDetailEntry.outfit.accessories.map((acc, idx) => (
+                    <OutfitCard
+                      key={idx}
+                      title={`Accessory ${selectedDetailEntry.outfit.accessories.length > 1 ? idx + 1 : ""}`}
+                      item={acc}
+                    />
+                  ))
+                ) : selectedDetailEntry.outfit.accessory ? (
                   <OutfitCard
                     title="Accessory"
                     item={selectedDetailEntry.outfit.accessory}
                   />
-                )}
+                ) : null}
               </div>
 
               {/* Rating Toolbar inside Detail Modal */}

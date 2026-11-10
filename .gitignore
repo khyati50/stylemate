@@ -1,36 +1,51 @@
-# macOS
+# OS & System Files
 .DS_Store
 **/.DS_Store
+Thumbs.db
 
-# Postman
-.postman/
-
-# Backend uploads
-stylemate-backend/uploads/
-
-# Python virtual environment
-ai/venv/
-
-# Python cache
-ai/__pycache__/
-**/__pycache__/
-*.pyc
-
-# Jupyter
-ai/notebooks/.ipynb_checkpoints/
-
-# Environment files
+# Environment Variables & Secrets (NEVER COMMIT CREDENTIALS)
 .env
 **/.env
-ai/.env
+*.env.local
+
+# Node.js & Frontend Build Outputs
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+build/
+**/build/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python & Virtual Environments
+venv/
+**/venv/
+.venv/
+**/env/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+
+# Jupyter & IDE
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+.vscode/
+.idea/
+
+# Backend User Uploads & Local Caches
+stylemate-backend/uploads/
+stylemate-backend/data/
+
+# Tooling
+.postman/
 
 # Logs
 *.log
 **/*.log
-
-# Backend uploads and caches
-stylemate-backend/uploads/
-stylemate-backend/data/
-
-# Temporary AI docs
-ai/docs/

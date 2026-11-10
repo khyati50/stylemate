@@ -100,6 +100,11 @@ const recommendOutfit = async (req, res) => {
       accessory: Array.isArray(raw.accessories)
         ? raw.accessories[0] || null
         : raw.accessories || null,
+      accessories: Array.isArray(raw.accessories)
+        ? raw.accessories
+        : raw.accessories
+        ? [raw.accessories]
+        : [],
     });
 
     const formattedOutfits = rankedOutfits.map((entry) => ({

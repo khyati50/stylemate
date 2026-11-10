@@ -344,6 +344,20 @@ def _validate_compatibility(outfit):
             if "belt" in acc_name:
                 return False, "External belt cannot be worn over ethnic upper garments"
 
+    # Rule 5h: Material clash — Denim top + Denim outerwear (double denim overload)
+    core_top = upper or full
+    if core_top and outer:
+        top_name = (core_top.get("name") or "").lower()
+        outer_name = (outer.get("name") or "").lower()
+        top_colors = [str(c).lower() for c in (core_top.get("colors") or [])]
+        outer_colors = [str(c).lower() for c in (outer.get("colors") or [])]
+
+        top_is_denim = "denim" in top_name or "denim" in top_colors
+        outer_is_denim = "denim" in outer_name or "denim" in outer_colors
+
+        if top_is_denim and outer_is_denim:
+            return False, "Denim top cannot be worn with denim outerwear"
+
     return True, None
 
 

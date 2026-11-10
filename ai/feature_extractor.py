@@ -421,35 +421,35 @@ def _compute_garment_compatibility(outfit):
     return round(sum(scores) / len(scores), 4) if scores else 1.0
 
 
-def _compute_outfit_completeness(outfit):
+def _compute_slot_presence(outfit):
     """
-    Feature 10 — outfit_completeness.
-    Formula: Check whether all required outfit pieces are present.
-             Scored additively:
-                 core (Top+Bottom or Full Body) → 0.50
-                 footwear                        → 0.30
-                 outerwear                       → 0.10
-                 at least one accessory          → 0.10
-    Output:  0.0–1.0
-    """
-    score = 0.0
+    Features 10–13 — raw binary slot presence flags.
 
-    has_core = bool(outfit.get("full_body")) or (
-        bool(outfit.get("upper_body")) and bool(outfit.get("lower_body"))
+    Instead of a single hardcoded completeness score (old approach),
+    we expose each slot as a separate 0/1 feature so the model can
+    learn the weight of each slot from data — no human opinion baked in.
+
+    Returns a dict with 4 keys:
+        has_core  → 1 if top+bottom OR full-body item present, else 0
+        has_shoes → 1 if footwear present, else 0
+        has_outer → 1 if outerwear present, else 0
+        has_acc   → 1 if at least one accessory present, else 0
+    """
+    has_core = int(
+        bool(outfit.get("full_body")) or (
+            bool(outfit.get("upper_body")) and bool(outfit.get("lower_body"))
+        )
     )
-    if has_core:
-        score += 0.50
+    has_shoes = int(bool(outfit.get("footwear")))
+    has_outer = int(bool(outfit.get("outerwear")))
+    has_acc   = int(bool(outfit.get("accessories")) and len(outfit["accessories"]) > 0)
 
-    if outfit.get("footwear"):
-        score += 0.30
-
-    if outfit.get("outerwear"):
-        score += 0.10
-
-    if outfit.get("accessories") and len(outfit["accessories"]) > 0:
-        score += 0.10
-
-    return round(score, 4)
+    return {
+        "has_core":  has_core,
+        "has_shoes": has_shoes,
+        "has_outer": has_outer,
+        "has_acc":   has_acc,
+    }
 
 
 # ===========================================================================
@@ -458,10 +458,12 @@ def _compute_outfit_completeness(outfit):
 
 def extract_features(outfit, user_preferences, weather, user_history):
     """
-    Extracts the 10 Layer 2 ML features from an outfit.
+    Extracts the 13 ML features from an outfit.
 
-    All features output a Float in [0.0, 1.0] as specified in
-    docs/StyleMate_Layer2_Design_Specification.md.
+    9 continuous features (float in [0.0, 1.0]) + 4 binary slot-presence
+    features (int 0 or 1). The slot features replace the old single
+    hardcoded 'outfit_completeness' score so the model can learn the
+    weight of each slot from data.
 
     Args:
         outfit           (dict): Outfit dict with slot keys and item dicts as values.
@@ -470,12 +472,13 @@ def extract_features(outfit, user_preferences, weather, user_history):
         user_history     (dict): Reserved for V2 wear-history features (unused here).
 
     Returns:
-        dict: Exactly 10 feature keys, all float values in [0.0, 1.0].
+        dict: 13 feature keys.
     """
-    items            = _get_all_items(outfit)
-    unique_colors    = _collect_unique_colors(items)
+    items             = _get_all_items(outfit)
+    unique_colors     = _collect_unique_colors(items)
     selected_occasion = user_preferences.get("occasion") if user_preferences else None
     selected_season   = weather.get("season") if weather else None
+    slot_flags        = _compute_slot_presence(outfit)
 
     return {
 
@@ -514,6 +517,10 @@ def extract_features(outfit, user_preferences, weather, user_history):
         "garment_compatibility":
             _compute_garment_compatibility(outfit),
 
-        "outfit_completeness":
-            _compute_outfit_completeness(outfit),
+        # ------ Slot Presence Features (binary; model learns weights) ------
+
+        "has_core":  slot_flags["has_core"],
+        "has_shoes": slot_flags["has_shoes"],
+        "has_outer": slot_flags["has_outer"],
+        "has_acc":   slot_flags["has_acc"],
     }

@@ -37,15 +37,15 @@ def group_clothes_by_slot(clothes):
 
 def generate_outfits(grouped_clothes, selected_season=None, selected_occasion=None):
     """
-    Generates all valid outfit combinations and applies hard-rule validation.
+    Generates unique core outfit combinations and bundles matching accessories.
 
-    Outerwear and accessories are optional: a sentinel value of None
-    is included in each list so that combinations without them are
-    also generated.
+    Outerwear is optional: None is prepended so outfits without outerwear
+    are also generated.
 
-    After combinatorial generation, outfit_validator.filter_valid_outfits()
-    removes any outfit that violates structural, availability, season,
-    occasion, or compatibility rules.
+    Accessories are bundled together as a list for each unique core look
+    rather than multiplying the combinations via Cartesian product. This
+    ensures every recommended outfit in the UI is a distinct ensemble,
+    with all compatible accessories attached directly to it.
 
     Args:
         grouped_clothes   (dict): Wardrobe items grouped by slot.
@@ -55,62 +55,52 @@ def generate_outfits(grouped_clothes, selected_season=None, selected_occasion=No
     Returns:
         list[dict]: Only outfits that passed all hard rules.
     """
-
     outfits = []
 
-    # Optional slots: prepend None so combinations without them are included
-    outerwear_options = [None] + grouped_clothes["outerwear"]
-    accessory_options = [None] + grouped_clothes["accessories"]
+    outerwear_options = [None] + grouped_clothes.get("outerwear", [])
+    available_accessories = grouped_clothes.get("accessories", [])
 
     # ---------- Full Body Outfits ----------
-
-    for full_body_item, footwear, outerwear, accessory in product(
-        grouped_clothes["full_body"],
-        grouped_clothes["footwear"],
+    for full_body_item, footwear, outerwear in product(
+        grouped_clothes.get("full_body", []),
+        grouped_clothes.get("footwear", []),
         outerwear_options,
-        accessory_options,
     ):
-
+        full_styles = {s.lower() for s in (full_body_item.get("styles") or []) if s}
+        is_ethnic = "ethnic" in full_styles
+        matching_accs = [
+            acc for acc in available_accessories
+            if not (is_ethnic and "belt" in (acc.get("name") or "").lower())
+        ]
         outfits.append({
-
             "upper_body": None,
-
             "lower_body": None,
-
             "full_body": full_body_item,
-
             "footwear": footwear,
-
             "outerwear": outerwear,
-
-            "accessories": [accessory] if accessory else [],
-
+            "accessories": matching_accs,
         })
 
     # ---------- Upper + Lower Outfits ----------
-
-    for upper, lower, footwear, outerwear, accessory in product(
-        grouped_clothes["upper_body"],
-        grouped_clothes["lower_body"],
-        grouped_clothes["footwear"],
+    for upper, lower, footwear, outerwear in product(
+        grouped_clothes.get("upper_body", []),
+        grouped_clothes.get("lower_body", []),
+        grouped_clothes.get("footwear", []),
         outerwear_options,
-        accessory_options,
     ):
-
+        upper_styles = {s.lower() for s in (upper.get("styles") or []) if s}
+        is_ethnic = "ethnic" in upper_styles
+        matching_accs = [
+            acc for acc in available_accessories
+            if not (is_ethnic and "belt" in (acc.get("name") or "").lower())
+        ]
         outfits.append({
-
             "upper_body": upper,
-
             "lower_body": lower,
-
             "full_body": None,
-
             "footwear": footwear,
-
             "outerwear": outerwear,
-
-            "accessories": [accessory] if accessory else [],
-
+            "accessories": matching_accs,
         })
 
     return filter_valid_outfits(outfits, selected_season, selected_occasion)

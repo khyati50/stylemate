@@ -28,13 +28,13 @@ from ranker import rank_outfits
 # Soft preference scoring helpers
 # ---------------------------------------------------------------------------
 
-# ML score range observed: ~0.67–0.94, std ~0.07.
-# Background preferences contribute up to 0.075 each.
-# Explicit user preferences contribute up to 0.35 each (binary presence-based),
-# guaranteed to overcome the max observed ML score gap (~0.27).
-_STYLE_BOOST_MAX = 0.075
-_COLOR_BOOST_MAX = 0.075
-_EXPLICIT_BOOST_MAX = 0.35
+# ML score range (v2 Polyvore model): true probability in [0.0, 1.0].
+# Soft preference boosts are kept small relative to the probability scale.
+# Background preferences contribute up to 0.05 each.
+# Explicit user preferences contribute up to 0.20 each (binary presence-based).
+_STYLE_BOOST_MAX = 0.05
+_COLOR_BOOST_MAX = 0.05
+_EXPLICIT_BOOST_MAX = 0.20
 
 
 def _normalize_tags(raw):
