@@ -47,7 +47,7 @@ FORMALITY_RANK = {
 }
 
 # Styles that belong to the ethnic category
-ETHNIC_STYLES = {"ethnic"}
+ETHNIC_STYLES = {"ethnic", "ethinic", "traditional", "indian"}
 
 # Styles that belong to the athletic/sport category
 SPORTY_STYLES = {"sporty", "athletic"}
@@ -57,14 +57,20 @@ FORMAL_STYLES = {"formal", "smart"}
 
 
 def _get_styles(item):
-    """Returns a set of lowercase style tags for an item."""
+    """Returns a set of lowercase style tags for an item with taxonomy inference."""
     if item is None:
         return set()
     styles = {s.lower() for s in item.get("styles", []) if s}
+    if "ethinic" in styles:
+        styles.remove("ethinic")
+        styles.add("ethnic")
+
     name = str(item.get("name", "")).lower()
     cat = str(item.get("category", "")).lower()
     if any(k in name or k in cat for k in ["hoodie", "sweatshirt", "tracksuit", "jogger", "sweatpant"]):
         styles.add("sporty")
+    if any(k in name or k in cat for k in ["kurta", "kurti", "saree", "sari", "lehenga", "sherwani", "anarkali"]):
+        styles.add("ethnic")
     return styles
 
 
@@ -206,7 +212,7 @@ def _validate_season(outfit, selected_season):
     return True, None
 
 
-from occasion_rules import matches_occasion
+from occasion_rules import matches_occasion, normalize_occasion
 
 # ---------------------------------------------------------------------------
 # Rule Group 4 — Occasion Validation (core garments only)
@@ -223,6 +229,8 @@ def _validate_occasion(outfit, selected_occasion):
         (e.g., Little Black Dress or Emerald Satin Top for 'Date Night').
         Versatile neutral pieces (like high-waist white trousers or dark jeans)
         can then complete the look without being artificially rejected.
+      - Core pieces do not contain an irreconcilable ceremonial clash
+        (e.g. ceremonial wedding kurtas or lehengas in casual date night / office).
 
     Returns:
         (bool, str)
@@ -236,6 +244,16 @@ def _validate_occasion(outfit, selected_occasion):
     if not core_items:
         return False, "Missing core garment"
 
+    # Cultural & ceremonial clash check:
+    # Garments strictly tagged for religious ceremonies/festivals cannot be worn to date night, office, or casual outings
+    clean_occ = normalize_occasion(selected_occasion)
+    if clean_occ in ["date night", "date", "casual", "office", "cafe"]:
+        for item in core_items:
+            item_occs = {normalize_occasion(o) for o in _get_occasions(item) if o}
+            if item_occs and item_occs.issubset({"wedding", "festival", "festive", "traditional", "ceremony"}):
+                name = item.get("name", "Item")
+                return False, f"'{name}' is intended strictly for ceremonial/festive occasions, not '{selected_occasion}'"
+
     # Check if any core garment matches the occasion semantically
     matches = [
         matches_occasion(_get_occasions(item), selected_occasion)
@@ -246,6 +264,7 @@ def _validate_occasion(outfit, selected_occasion):
         return False, f"Outfit core garments do not match occasion '{selected_occasion}'"
 
     return True, None
+
 
 
 
@@ -368,6 +387,18 @@ def _validate_compatibility(outfit):
 
         if top_is_denim and outer_is_denim:
             return False, "Denim top cannot be worn with denim outerwear"
+
+    # Rule 5i: Ethnic upper + Western casual / non-ethnic bottom clash
+    # E.g. Traditional Kurta paired with Western mini/pleated skirt, casual shorts, or cargo pants
+    if upper_class == "ethnic" and lower:
+        lower_name = (lower.get("name") or "").lower()
+        lower_is_ethnic_bottom = (
+            lower_class == "ethnic" or
+            any(k in lower_name for k in ["palazzo", "salwar", "churidar", "dhoti", "pyjama", "pajama"])
+        )
+        if not lower_is_ethnic_bottom:
+            if lower_class in ["casual", "sporty"] or any(k in lower_name for k in ["skirt", "cargo", "short", "jogger"]):
+                return False, "Ethnic upper garment cannot be paired with Western casual skirt or casual bottoms"
 
     return True, None
 

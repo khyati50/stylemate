@@ -268,10 +268,11 @@ def _apply_disliked_penalties(
 
 def _apply_occasion_boost(ranked_outfits, selected_occasion, boost_max=0.35):
     """
-    Applies soft semantic occasion boosting to ranked outfits using 2-tier weights.
-    Ensembles with core items matching the target occasion receive up to +0.35,
-    ensuring dedicated occasion-appropriate looks (e.g. dresses, satin tops)
-    decisively float to #1 while keeping versatile combinations as fallbacks.
+    Applies soft semantic occasion boosting using generalized 80/20 Hero Slot algebra.
+    Core focal garments (Dress or Top+Bottom) carry 80% (0.28) of the occasion weight,
+    while Footwear carries 20% (0.07).
+    This ensures that a stunning hero dress/outfit is not dragged down into obscurity
+    if the user does not own dedicated occasion footwear.
     """
     if not selected_occasion or not ranked_outfits:
         return ranked_outfits
@@ -301,8 +302,8 @@ def _apply_occasion_boost(ranked_outfits, selected_occasion, boost_max=0.35):
             if shoes else 0.0
         )
 
-        # Proportional boost: up to 0.25 for core, up to 0.10 for footwear
-        occ_boost = (avg_core_weight * 0.25) + (shoe_weight * 0.10)
+        # 80/20 Hero Slot weighting: up to 0.28 for core, up to 0.07 for footwear
+        occ_boost = (avg_core_weight * 0.28) + (shoe_weight * 0.07)
 
         boosted.append({
             "outfit": outfit,
@@ -311,6 +312,41 @@ def _apply_occasion_boost(ranked_outfits, selected_occasion, boost_max=0.35):
 
     boosted.sort(key=lambda x: x["score"], reverse=True)
     return boosted
+
+
+def _curate_top_outfits(ranked_outfits, min_count=5, max_count=7, tier1_threshold=0.75):
+    """
+    Applies an industry-standard Dynamic Waterfall Selection to curate
+    between min_count (5) and max_count (7) high-quality ensembles.
+
+    Algorithm:
+      1. Tier 1: Select looks with score >= tier1_threshold (0.75).
+      2. If fewer than min_count (5) qualify, dynamically relax threshold
+         to Tier 2 (0.65), then Tier 3 (0.55) to ensure the user gets 5-7 looks
+         if their closet permits.
+      3. Never return bottom-tier junk (below 0.50).
+      4. Cap strictly at max_count (7) unique distinct ensembles.
+    """
+    if not ranked_outfits:
+        return []
+
+    # If the wardrobe only has fewer than min_count outfits in total, return all of them
+    if len(ranked_outfits) <= min_count:
+        return ranked_outfits
+
+    # Step 1: Tier 1 high quality (>= 0.75)
+    tier1 = [entry for entry in ranked_outfits if entry["score"] >= tier1_threshold]
+    if len(tier1) >= min_count:
+        return tier1[:max_count]
+
+    # Step 2: Adaptive Waterfall decay
+    for relaxed_threshold in [0.65, 0.55]:
+        relaxed = [entry for entry in ranked_outfits if entry["score"] >= relaxed_threshold]
+        if len(relaxed) >= min_count:
+            return relaxed[:max_count]
+
+    # Step 3: If still under min_count, take the highest available up to max_count
+    return ranked_outfits[:max_count]
 
 
 # ---------------------------------------------------------------------------
@@ -399,13 +435,22 @@ def recommend_outfits(wardrobe, weather, user_preferences, user_history):
         preferred_style=pref_style,
     )
 
-    # Step 5 — v3 Multimodal Vision LLM evaluation (Top candidate)
+    # Step 5 — Dynamic Waterfall Curation (5 to 7 prime curated ensembles)
+    # Replaces the raw 60-outfit dump with high-confidence looks
+    curated_outfits = _curate_top_outfits(
+        ranked_outfits,
+        min_count=5,
+        max_count=7,
+        tier1_threshold=0.75
+    )
+
+    # Step 6 — v3 Multimodal Vision LLM evaluation (Top candidate)
     # Analyzes actual garment photos for texture harmony, weather suitability,
     # and generates personalized stylist advice. Gracefully falls back if offline.
     try:
         from v3_vision_stylist import enrich_outfits_with_v3
-        ranked_outfits = enrich_outfits_with_v3(
-            ranked_outfits=ranked_outfits,
+        curated_outfits = enrich_outfits_with_v3(
+            ranked_outfits=curated_outfits,
             weather=weather,
             user_preferences=user_preferences,
             max_to_evaluate=1,
@@ -413,7 +458,7 @@ def recommend_outfits(wardrobe, weather, user_preferences, user_history):
     except Exception:
         pass
 
-    return ranked_outfits
+    return curated_outfits
 
 
 def main():
