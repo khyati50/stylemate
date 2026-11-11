@@ -3,50 +3,39 @@ Clothing Filter
 
 Applies hard constraints to the wardrobe before outfit generation.
 
-Hard constraints (per StyleMate_Layer2_Design_Specification.md):
-  - Season  — items that don't match the selected season are excluded
-  - Occasion — items that don't match the selected occasion are excluded
-
-Soft preferences (style, color) are NOT applied here.
-They affect outfit RANKING in recommendation.py, not item eligibility.
+Production Architecture:
+  - Season: Hard physical constraint (e.g. excludes heavy winter coats in 35°C summer).
+  - Occasion: INTENTIONALLY NOT a hard deletion filter here.
+    Clothes do not have fixed innate occasions; ensembles do. A white shirt or black dress
+    can be styled for work, date night, or casual outings depending on the pairing.
+    Filtering out items by occasion beforehand deletes versatile basics and leaves slots
+    (like footwear) empty. Occasion is instead scored as a soft ranking signal in
+    recommendation.py and visually validated by the Stage 2 Multimodal Vision LLM.
 """
 
 from weather_rules import filter_by_season
-from occasion_rules import filter_by_occasion
 
 
 def filter_clothes(
     clothes,
     selected_season,
-    selected_occasions,
+    selected_occasions=None,
 ):
     """
-    Applies season and occasion hard filters.
-
-    Style and color preferences are intentionally excluded from this
-    function. Filtering individual items by preferred style or color
-    before outfit generation destroys otherwise valid complete outfits
-    (e.g., removing footwear because it doesn't match the user's
-    preferred color). These preferences are applied as outfit-level
-    ranking signals instead.
+    Applies seasonal hard constraints to the wardrobe.
 
     Args:
         clothes (list): Full wardrobe item list.
         selected_season (str): The detected or user-provided season.
-        selected_occasions (list[str]): The selected occasions.
+        selected_occasions (list[str], optional): Kept for signature compatibility.
 
     Returns:
-        list: Items that pass season and occasion hard filters.
+        list: Items that pass the seasonal physical constraints.
     """
+    if not selected_season:
+        return clothes
 
-    clothes = filter_by_season(
+    return filter_by_season(
         clothes,
         selected_season
     )
-
-    clothes = filter_by_occasion(
-        clothes,
-        selected_occasions
-    )
-
-    return clothes

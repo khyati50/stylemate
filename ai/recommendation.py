@@ -21,6 +21,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "rule-engine"))
 
 from outfit_generator import group_clothes_by_slot, generate_outfits
 from clothing_filter import filter_clothes
+from occasion_rules import matches_occasion, get_occasion_match_weight
 from ranker import rank_outfits
 
 
@@ -265,6 +266,53 @@ def _apply_disliked_penalties(
     return penalized
 
 
+def _apply_occasion_boost(ranked_outfits, selected_occasion, boost_max=0.35):
+    """
+    Applies soft semantic occasion boosting to ranked outfits using 2-tier weights.
+    Ensembles with core items matching the target occasion receive up to +0.35,
+    ensuring dedicated occasion-appropriate looks (e.g. dresses, satin tops)
+    decisively float to #1 while keeping versatile combinations as fallbacks.
+    """
+    if not selected_occasion or not ranked_outfits:
+        return ranked_outfits
+
+    boosted = []
+    for entry in ranked_outfits:
+        outfit = entry["outfit"]
+        score = entry["score"]
+
+        # Check core pieces (full body or top/bottom)
+        core_items = []
+        for slot in ["upper_body", "lower_body", "full_body"]:
+            item = outfit.get(slot)
+            if item:
+                core_items.append(item)
+
+        core_weights = [
+            get_occasion_match_weight(_normalize_tags(item.get("occasions")), selected_occasion)
+            for item in core_items
+        ]
+        avg_core_weight = (sum(core_weights) / len(core_weights)) if core_weights else 0.0
+
+        # Check footwear
+        shoes = outfit.get("footwear")
+        shoe_weight = (
+            get_occasion_match_weight(_normalize_tags(shoes.get("occasions")), selected_occasion)
+            if shoes else 0.0
+        )
+
+        # Proportional boost: up to 0.25 for core, up to 0.10 for footwear
+        occ_boost = (avg_core_weight * 0.25) + (shoe_weight * 0.10)
+
+        boosted.append({
+            "outfit": outfit,
+            "score": round(score + occ_boost, 4),
+        })
+
+    boosted.sort(key=lambda x: x["score"], reverse=True)
+    return boosted
+
+
 # ---------------------------------------------------------------------------
 # Main pipeline
 # ---------------------------------------------------------------------------
@@ -273,8 +321,12 @@ def recommend_outfits(wardrobe, weather, user_preferences, user_history):
     """
     Generates and ranks outfit recommendations.
 
-    Hard constraints : Occasion + Season  (item-level filter)
-    Soft preferences : Style + Color      (outfit-level scoring, post-ML)
+    Production Architecture:
+      - Physical constraints (Season) applied at item level.
+      - Candidate outfits generated with smart footwear fallback.
+      - ML ranking via v2 HistGradientBoosting model.
+      - Soft preference & semantic occasion boosting applied post-ML.
+      - Stage 2 Multimodal Vision LLM evaluates top look visually.
 
     Args:
         wardrobe         (list)
@@ -288,7 +340,7 @@ def recommend_outfits(wardrobe, weather, user_preferences, user_history):
         list[dict]: Ranked outfits, each {"outfit": ..., "score": ...}
     """
 
-    # Step 1 — Hard filter: Occasion + Season only
+    # Step 1 — Season filter (Occasion is scored softly, not hard-deleted)
     filtered_clothes = filter_clothes(
         clothes=wardrobe,
         selected_season=weather.get("season"),
@@ -299,13 +351,14 @@ def recommend_outfits(wardrobe, weather, user_preferences, user_history):
         ),
     )
 
-    # Step 2 — Generate complete valid outfits
+    # Step 2 — Generate complete valid outfits with smart fallback
     grouped_clothes = group_clothes_by_slot(filtered_clothes)
 
     outfits = generate_outfits(
         grouped_clothes,
         selected_season=weather.get("season"),
         selected_occasion=user_preferences.get("occasion"),
+        all_clothes=wardrobe,
     )
 
     # Step 3 — ML ranking (feature extraction + model predict + sort)
@@ -322,7 +375,13 @@ def recommend_outfits(wardrobe, weather, user_preferences, user_history):
     explicit_color = user_preferences.get("explicit_color")
     explicit_boost = user_preferences.get("explicit_boost", _EXPLICIT_BOOST_MAX)
 
-    # Step 4 — Apply soft Style + Color preference boost, then re-sort
+    # Step 4a — Apply soft semantic occasion boost
+    ranked_outfits = _apply_occasion_boost(
+        ranked_outfits,
+        selected_occasion=user_preferences.get("occasion"),
+    )
+
+    # Step 4b — Apply soft Style + Color preference boost, then re-sort
     ranked_outfits = _apply_preference_boost(
         ranked_outfits,
         preferred_style=pref_style,
@@ -339,6 +398,20 @@ def recommend_outfits(wardrobe, weather, user_preferences, user_history):
         preferred_color=pref_color,
         preferred_style=pref_style,
     )
+
+    # Step 5 — v3 Multimodal Vision LLM evaluation (Top candidate)
+    # Analyzes actual garment photos for texture harmony, weather suitability,
+    # and generates personalized stylist advice. Gracefully falls back if offline.
+    try:
+        from v3_vision_stylist import enrich_outfits_with_v3
+        ranked_outfits = enrich_outfits_with_v3(
+            ranked_outfits=ranked_outfits,
+            weather=weather,
+            user_preferences=user_preferences,
+            max_to_evaluate=1,
+        )
+    except Exception:
+        pass
 
     return ranked_outfits
 

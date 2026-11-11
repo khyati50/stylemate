@@ -60,7 +60,12 @@ def _get_styles(item):
     """Returns a set of lowercase style tags for an item."""
     if item is None:
         return set()
-    return {s.lower() for s in item.get("styles", []) if s}
+    styles = {s.lower() for s in item.get("styles", []) if s}
+    name = str(item.get("name", "")).lower()
+    cat = str(item.get("category", "")).lower()
+    if any(k in name or k in cat for k in ["hoodie", "sweatshirt", "tracksuit", "jogger", "sweatpant"]):
+        styles.add("sporty")
+    return styles
 
 
 def _get_occasions(item):
@@ -201,15 +206,23 @@ def _validate_season(outfit, selected_season):
     return True, None
 
 
+from occasion_rules import matches_occasion
+
 # ---------------------------------------------------------------------------
 # Rule Group 4 — Occasion Validation (core garments only)
 # ---------------------------------------------------------------------------
 
 def _validate_occasion(outfit, selected_occasion):
     """
-    Ensures that core garments (Top, Bottom, Full Body) are appropriate
-    for the selected occasion. Footwear and accessories are not checked
-    here since they are handled by the compatibility rules.
+    Ensures that core garments (Top, Bottom, Full Body) are compatible
+    with the selected occasion using semantic fuzzy matching.
+
+    An ensemble is occasion-valid if:
+      - No occasion is selected.
+      - At least one core focal piece matches the occasion semantically
+        (e.g., Little Black Dress or Emerald Satin Top for 'Date Night').
+        Versatile neutral pieces (like high-waist white trousers or dark jeans)
+        can then complete the look without being artificially rejected.
 
     Returns:
         (bool, str)
@@ -217,25 +230,23 @@ def _validate_occasion(outfit, selected_occasion):
     if not selected_occasion:
         return True, None
 
-    occasion = selected_occasion.lower()
     core_slots = ["upper_body", "lower_body", "full_body"]
+    core_items = [outfit.get(slot) for slot in core_slots if outfit.get(slot) is not None]
 
-    for slot in core_slots:
-        item = outfit.get(slot)
-        if item is None:
-            continue
+    if not core_items:
+        return False, "Missing core garment"
 
-        item_occasions = _get_occasions(item)
+    # Check if any core garment matches the occasion semantically
+    matches = [
+        matches_occasion(_get_occasions(item), selected_occasion)
+        for item in core_items
+    ]
 
-        # Items tagged "all" are always valid
-        if "all" in item_occasions:
-            continue
-
-        if occasion not in item_occasions:
-            name = item.get("name", slot)
-            return False, f"'{name}' is not tagged for occasion '{occasion}'"
+    if not any(matches):
+        return False, f"Outfit core garments do not match occasion '{selected_occasion}'"
 
     return True, None
+
 
 
 # ---------------------------------------------------------------------------

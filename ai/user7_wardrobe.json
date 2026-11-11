@@ -1,0 +1,775 @@
+[
+  {
+    "id": 3,
+    "userId": 7,
+    "name": "jeans",
+    "styles": [
+      "casual"
+    ],
+    "category": "Bottom",
+    "colors": [
+      "light blue"
+    ],
+    "imageUrl": "uploads/1785575250550-jeans.jpeg",
+    "seasons": [
+      "summer",
+      "winter",
+      "spring"
+    ],
+    "occasions": [
+      "college",
+      "cafe"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T09:07:30.000Z",
+    "updatedAt": "2026-08-01T09:07:30.000Z"
+  },
+  {
+    "id": 4,
+    "userId": 7,
+    "name": "White Sneakers",
+    "styles": [
+      "casual",
+      "sporty"
+    ],
+    "category": "Footwear",
+    "colors": [
+      "white"
+    ],
+    "imageUrl": "uploads/1785575359831-sneakers.jpeg",
+    "seasons": [
+      "summer",
+      "spring",
+      "winter",
+      "autumn"
+    ],
+    "occasions": [
+      "college",
+      "cafe",
+      "casual",
+      "office"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T09:09:19.000Z",
+    "updatedAt": "2026-08-01T18:45:03.000Z"
+  },
+  {
+    "id": 5,
+    "userId": 7,
+    "name": "Hoodie",
+    "styles": [
+      "casual"
+    ],
+    "category": "Top",
+    "colors": [
+      "white"
+    ],
+    "imageUrl": "uploads/1785575595296-hoodie.jpeg",
+    "seasons": [
+      "winter"
+    ],
+    "occasions": [
+      "college",
+      "party"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T09:13:15.000Z",
+    "updatedAt": "2026-08-01T09:13:15.000Z"
+  },
+  {
+    "id": 6,
+    "userId": 7,
+    "name": "pink Dress",
+    "styles": [
+      "body-fit"
+    ],
+    "category": "Full Body",
+    "colors": [
+      "pink"
+    ],
+    "imageUrl": "uploads/1785575724829-pink dress.jpeg",
+    "seasons": [
+      "summer",
+      "spring",
+      "autumn"
+    ],
+    "occasions": [
+      "party",
+      "get together"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T09:15:24.000Z",
+    "updatedAt": "2026-08-01T09:15:24.000Z"
+  },
+  {
+    "id": 7,
+    "userId": 7,
+    "name": "green tshirt",
+    "styles": [
+      "casual",
+      "streetwear"
+    ],
+    "category": "Top",
+    "colors": [
+      "green"
+    ],
+    "imageUrl": "uploads/1785608620278-green_tshirt.jpg",
+    "seasons": [
+      "summer",
+      "spring"
+    ],
+    "occasions": [
+      "college",
+      "casual"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T18:23:40.000Z",
+    "updatedAt": "2026-08-01T18:23:40.000Z"
+  },
+  {
+    "id": 8,
+    "userId": 7,
+    "name": "blue denim shirt",
+    "styles": [
+      "casual"
+    ],
+    "category": "Top",
+    "colors": [
+      "blue"
+    ],
+    "imageUrl": "uploads/1785608751856-blue denim shirt.jpeg",
+    "seasons": [
+      "winter",
+      "spring"
+    ],
+    "occasions": [
+      "college",
+      "casual"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T18:25:51.000Z",
+    "updatedAt": "2026-08-01T18:25:51.000Z"
+  },
+  {
+    "id": 9,
+    "userId": 7,
+    "name": "red Kurta",
+    "styles": [
+      "ethinic"
+    ],
+    "category": "Top",
+    "colors": [
+      "red"
+    ],
+    "imageUrl": "uploads/1785608856622-red kurta.jpeg",
+    "seasons": [
+      "summer",
+      "spring"
+    ],
+    "occasions": [
+      "wedding",
+      "festival"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T18:27:36.000Z",
+    "updatedAt": "2026-08-01T18:27:36.000Z"
+  },
+  {
+    "id": 10,
+    "userId": 7,
+    "name": "Black Trouser",
+    "styles": [
+      "formal"
+    ],
+    "category": "Bottom",
+    "colors": [
+      "black"
+    ],
+    "imageUrl": "uploads/1785609016669-Black Trouser.jpeg",
+    "seasons": [
+      "summer",
+      "winter",
+      "spring",
+      "autumn"
+    ],
+    "occasions": [
+      "office",
+      "party"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T18:30:16.000Z",
+    "updatedAt": "2026-08-01T18:30:16.000Z"
+  },
+  {
+    "id": 11,
+    "userId": 7,
+    "name": "Cargo Pants",
+    "styles": [
+      "streetwear"
+    ],
+    "category": "Bottom",
+    "colors": [
+      "brown"
+    ],
+    "imageUrl": "uploads/1785609090268-cargo points.jpeg",
+    "seasons": [
+      "winter",
+      "autumn"
+    ],
+    "occasions": [
+      "casual",
+      "college"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T18:31:30.000Z",
+    "updatedAt": "2026-08-01T18:31:30.000Z"
+  },
+  {
+    "id": 12,
+    "userId": 7,
+    "name": "white skirt",
+    "styles": [
+      "casual"
+    ],
+    "category": "Bottom",
+    "colors": [
+      "white"
+    ],
+    "imageUrl": "uploads/1785609204582-white skirts.jpeg",
+    "seasons": [
+      "summer",
+      "spring"
+    ],
+    "occasions": [
+      "casual",
+      "party"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T18:33:24.000Z",
+    "updatedAt": "2026-08-01T18:33:24.000Z"
+  },
+  {
+    "id": 13,
+    "userId": 7,
+    "name": "saree",
+    "styles": [
+      "ethinic"
+    ],
+    "category": "Full Body",
+    "colors": [
+      "yellow",
+      "pink"
+    ],
+    "imageUrl": "uploads/1785609291321-saree.jpg",
+    "seasons": [
+      "summer",
+      "winter"
+    ],
+    "occasions": [
+      "wedding",
+      "festival"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T18:34:51.000Z",
+    "updatedAt": "2026-08-01T18:34:51.000Z"
+  },
+  {
+    "id": 14,
+    "userId": 7,
+    "name": "jumpsuit",
+    "styles": [
+      "casual"
+    ],
+    "category": "Full Body",
+    "colors": [
+      "beige"
+    ],
+    "imageUrl": "uploads/1785609422736-jumpsuit.jpg",
+    "seasons": [
+      "summer",
+      "spring"
+    ],
+    "occasions": [
+      "casual",
+      "party"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T18:37:02.000Z",
+    "updatedAt": "2026-08-01T18:37:02.000Z"
+  },
+  {
+    "id": 15,
+    "userId": 7,
+    "name": "black pencil heels",
+    "styles": [
+      "formal"
+    ],
+    "category": "Footwear",
+    "colors": [
+      "black"
+    ],
+    "imageUrl": "uploads/1785609561353-black pencil hells.jpeg",
+    "seasons": [
+      "summer",
+      "winter",
+      "spring",
+      "autumn"
+    ],
+    "occasions": [
+      "office",
+      "party"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T18:39:21.000Z",
+    "updatedAt": "2026-08-01T18:39:21.000Z"
+  },
+  {
+    "id": 16,
+    "userId": 7,
+    "name": "brown boots",
+    "styles": [
+      "boots"
+    ],
+    "category": "Footwear",
+    "colors": [
+      "brown"
+    ],
+    "imageUrl": "uploads/1785609710183-brown boots.jpeg",
+    "seasons": [
+      "winter",
+      "spring",
+      "autumn"
+    ],
+    "occasions": [
+      "party",
+      "college"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T18:41:50.000Z",
+    "updatedAt": "2026-08-01T18:44:30.000Z"
+  },
+  {
+    "id": 17,
+    "userId": 7,
+    "name": "peep toe heels",
+    "styles": [
+      "peep toe"
+    ],
+    "category": "Footwear",
+    "colors": [
+      "silver"
+    ],
+    "imageUrl": "uploads/1785609855928-peep toe heels.jpeg",
+    "seasons": [
+      "summer",
+      "winter",
+      "spring",
+      "autumn"
+    ],
+    "occasions": [
+      "party",
+      "wedding"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T18:44:15.000Z",
+    "updatedAt": "2026-08-01T18:46:27.000Z"
+  },
+  {
+    "id": 18,
+    "userId": 7,
+    "name": "Denim Jacket",
+    "styles": [
+      "casual"
+    ],
+    "category": "Outerwear",
+    "colors": [
+      "blue"
+    ],
+    "imageUrl": "uploads/1785610121829-denim jacket.jpeg",
+    "seasons": [
+      "winter",
+      "autumn"
+    ],
+    "occasions": [
+      "casual",
+      "college"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T18:48:41.000Z",
+    "updatedAt": "2026-08-01T18:48:41.000Z"
+  },
+  {
+    "id": 19,
+    "userId": 7,
+    "name": "black blazer",
+    "styles": [
+      "formal"
+    ],
+    "category": "Outerwear",
+    "colors": [
+      "black"
+    ],
+    "imageUrl": "uploads/1785610202828-black blazer.jpeg",
+    "seasons": [
+      "winter"
+    ],
+    "occasions": [
+      "office",
+      "party"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T18:50:02.000Z",
+    "updatedAt": "2026-08-01T18:50:02.000Z"
+  },
+  {
+    "id": 20,
+    "userId": 7,
+    "name": "black watch",
+    "styles": [
+      "casual",
+      "formal"
+    ],
+    "category": "Accessory",
+    "colors": [
+      "black"
+    ],
+    "imageUrl": "uploads/1785610285961-black watch.jpeg",
+    "seasons": [
+      "summer",
+      "winter",
+      "spring",
+      "autumn"
+    ],
+    "occasions": [
+      "college",
+      "office",
+      "party"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T18:51:25.000Z",
+    "updatedAt": "2026-08-01T18:51:25.000Z"
+  },
+  {
+    "id": 21,
+    "userId": 7,
+    "name": "Handbag",
+    "styles": [
+      "casual"
+    ],
+    "category": "Accessory",
+    "colors": [
+      "beige"
+    ],
+    "imageUrl": "uploads/1785610388056-handbag.jpeg",
+    "seasons": [
+      "summer",
+      "winter",
+      "spring"
+    ],
+    "occasions": [
+      "casual",
+      "party"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T18:53:08.000Z",
+    "updatedAt": "2026-08-01T18:53:08.000Z"
+  },
+  {
+    "id": 22,
+    "userId": 7,
+    "name": "sunglasses ",
+    "styles": [
+      "casual"
+    ],
+    "category": "Accessory",
+    "colors": [
+      "black"
+    ],
+    "imageUrl": "uploads/1785610477639-sunglasses.jpeg",
+    "seasons": [
+      "summer"
+    ],
+    "occasions": [
+      "casual",
+      "college"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T18:54:37.000Z",
+    "updatedAt": "2026-08-01T18:54:37.000Z"
+  },
+  {
+    "id": 23,
+    "userId": 7,
+    "name": "belt",
+    "styles": [
+      "formal",
+      "casual"
+    ],
+    "category": "Accessory",
+    "colors": [
+      "brown"
+    ],
+    "imageUrl": "uploads/1785610543540-belt.jpeg",
+    "seasons": [
+      "summer",
+      "winter",
+      "spring",
+      "autumn"
+    ],
+    "occasions": [
+      "office",
+      "college"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-01T18:55:43.000Z",
+    "updatedAt": "2026-08-01T18:55:43.000Z"
+  },
+  {
+    "id": 24,
+    "userId": 7,
+    "name": "black shirt",
+    "styles": [
+      "formal",
+      "casual"
+    ],
+    "category": "Top",
+    "colors": [
+      "black"
+    ],
+    "imageUrl": "uploads/1786219008551-black_shirt.jpeg",
+    "seasons": [
+      "summer",
+      "spring"
+    ],
+    "occasions": [
+      "college",
+      "office",
+      "party"
+    ],
+    "status": "available",
+    "createdAt": "2026-08-08T19:56:48.000Z",
+    "updatedAt": "2026-08-08T19:56:48.000Z"
+  },
+  {
+    "id": 59,
+    "userId": 7,
+    "name": "Little Black Dress",
+    "styles": [
+      "formal",
+      "smart",
+      "party",
+      "chic"
+    ],
+    "category": "Full Body",
+    "colors": [
+      "black"
+    ],
+    "imageUrl": "uploads/coord-user1-black-dress.jpg",
+    "seasons": [
+      "all"
+    ],
+    "occasions": [
+      "date",
+      "party",
+      "dinner",
+      "casual"
+    ],
+    "status": "available",
+    "createdAt": "2026-09-12T09:57:26.000Z",
+    "updatedAt": "2026-09-22T08:22:09.000Z"
+  },
+  {
+    "id": 60,
+    "userId": 7,
+    "name": "Emerald Green Satin Top",
+    "styles": [
+      "smart",
+      "party"
+    ],
+    "category": "Top",
+    "colors": [
+      "green",
+      "emerald"
+    ],
+    "imageUrl": "uploads/coord-user1-emerald-satin-top.jpg",
+    "seasons": [
+      "all"
+    ],
+    "occasions": [
+      "date",
+      "party",
+      "dinner",
+      "casual"
+    ],
+    "status": "available",
+    "createdAt": "2026-09-12T09:57:26.000Z",
+    "updatedAt": "2026-09-12T09:57:26.000Z"
+  },
+  {
+    "id": 61,
+    "userId": 7,
+    "name": "High-Waist White Trousers",
+    "styles": [
+      "smart",
+      "formal"
+    ],
+    "category": "Bottom",
+    "colors": [
+      "white"
+    ],
+    "imageUrl": "uploads/coord-user1-white-trousers.jpg",
+    "seasons": [
+      "all"
+    ],
+    "occasions": [
+      "date",
+      "dinner",
+      "cafe",
+      "party",
+      "casual"
+    ],
+    "status": "available",
+    "createdAt": "2026-09-12T09:57:26.000Z",
+    "updatedAt": "2026-09-12T09:57:26.000Z"
+  },
+  {
+    "id": 62,
+    "userId": 7,
+    "name": "Burgundy Pleated Skirt",
+    "styles": [
+      "smart",
+      "party"
+    ],
+    "category": "Bottom",
+    "colors": [
+      "burgundy",
+      "maroon"
+    ],
+    "imageUrl": "uploads/coord-user1-burgundy-skirt.jpg",
+    "seasons": [
+      "all"
+    ],
+    "occasions": [
+      "date",
+      "party",
+      "dinner",
+      "casual"
+    ],
+    "status": "available",
+    "createdAt": "2026-09-12T09:57:26.000Z",
+    "updatedAt": "2026-09-12T09:57:26.000Z"
+  },
+  {
+    "id": 63,
+    "userId": 7,
+    "name": "Nude Strappy Block Heels",
+    "styles": [
+      "smart",
+      "formal",
+      "party"
+    ],
+    "category": "Footwear",
+    "colors": [
+      "nude",
+      "beige"
+    ],
+    "imageUrl": "uploads/coord-user1-nude-heels.jpg",
+    "seasons": [
+      "all"
+    ],
+    "occasions": [
+      "date",
+      "party",
+      "wedding",
+      "dinner",
+      "casual"
+    ],
+    "status": "available",
+    "createdAt": "2026-09-12T09:57:26.000Z",
+    "updatedAt": "2026-09-12T09:57:26.000Z"
+  },
+  {
+    "id": 69,
+    "userId": 7,
+    "name": "Burgundy Halter Neck Ruched Dress",
+    "styles": [
+      "glamorous",
+      "evening",
+      "cocktail",
+      "sleek"
+    ],
+    "category": "Full Body",
+    "colors": [
+      "burgundy",
+      "maroon"
+    ],
+    "imageUrl": "uploads/1789247029462-bodycon dress.jpg",
+    "seasons": [
+      "summer",
+      "fall",
+      "spring"
+    ],
+    "occasions": [
+      "party",
+      "gala",
+      "date night",
+      "formal event"
+    ],
+    "status": "available",
+    "createdAt": "2026-09-12T21:03:49.000Z",
+    "updatedAt": "2026-09-12T21:03:49.000Z"
+  },
+  {
+    "id": 80,
+    "userId": 7,
+    "name": "Test Product",
+    "styles": [],
+    "category": "Top",
+    "colors": [],
+    "imageUrl": "https://example.com/img.jpg",
+    "seasons": [],
+    "occasions": [],
+    "status": "available",
+    "createdAt": "2026-09-14T17:53:19.000Z",
+    "updatedAt": "2026-09-14T17:53:19.000Z"
+  },
+  {
+    "id": 81,
+    "userId": 7,
+    "name": "Test Product 2",
+    "styles": [],
+    "category": "Top",
+    "colors": [],
+    "imageUrl": "https://example.com/img.jpg",
+    "seasons": [],
+    "occasions": [],
+    "status": "available",
+    "createdAt": "2026-09-14T17:56:00.000Z",
+    "updatedAt": "2026-09-14T17:56:00.000Z"
+  },
+  {
+    "id": 82,
+    "userId": 7,
+    "name": "Ladies H&M Linen-blend shirt",
+    "styles": [
+      "casual"
+    ],
+    "category": "Top",
+    "colors": [
+      "white"
+    ],
+    "imageUrl": "https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcT7Z0h48bNfRJd5ftaOMCekidmMV96YZwWMEsB9IIHKSUyPLZgXtmpK7KEy6QtX7UWSUjhBaZn9",
+    "seasons": [
+      "summer",
+      "spring"
+    ],
+    "occasions": [
+      "casual",
+      "college",
+      "office"
+    ],
+    "status": "available",
+    "createdAt": "2026-09-14T18:50:17.000Z",
+    "updatedAt": "2026-09-14T18:50:17.000Z"
+  }
+]

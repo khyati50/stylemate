@@ -183,6 +183,7 @@ function Recommendation() {
   }, []);
 
   const recommendation = recommendations[currentIndex]?.outfit || null;
+  const currentStylistNotes = recommendations[currentIndex]?.stylistNotes || null;
 
   const availableAccessories = recommendation
     ? Array.isArray(recommendation.accessories) && recommendation.accessories.length > 0
@@ -743,6 +744,7 @@ function Recommendation() {
                 item={recommendation.footwear}
                 preferredStyle={appliedPreferences.style}
                 preferredColor={appliedPreferences.color}
+                badge={recommendation.isClosetBestMatch ? "✦ Closet Match" : ""}
               />
               {recommendation.outerwear && (
                 <OutfitCard
@@ -825,12 +827,127 @@ function Recommendation() {
               </div>
             )}
 
-            {/* Why This Outfit? */}
-            <div className="mt-6 rounded-2xl border border-[#EAE5DD] bg-[#FAF7F2] p-4">
-              <p className="text-xs text-gray-500">
-                {generateOutfitReason(recommendation, occasion, season)}
-              </p>
-            </div>
+            {/* Personal Stylist Breakdown & Rationale */}
+            {currentStylistNotes ? (
+              <div className="mt-8 overflow-hidden rounded-3xl border border-[#8B6F47]/20 bg-gradient-to-br from-[#FAF7F2] via-white to-[#FAF7F2] p-6 md:p-8 shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAE5DD] pb-4 mb-5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#8B6F47] text-white shadow-2xs">
+                      <Sparkles size={16} />
+                    </div>
+                    <div>
+                      <h3 className="font-['Playfair_Display'] text-base md:text-lg font-bold text-[#2E2E2E]">
+                        Personal Stylist Critique
+                      </h3>
+                      <p className="text-[11px] text-[#8B6F47] font-semibold tracking-wide uppercase">
+                        {currentStylistNotes.model_version === "v3_vision_gemini"
+                          ? "✦ Powered by Multimodal Vision AI"
+                          : "✦ StyleMate Intelligent Analysis"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
+                        currentStylistNotes.verdict === "APPROVED"
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          : currentStylistNotes.verdict === "NEEDS_ADJUSTMENT"
+                          ? "bg-amber-50 text-amber-700 border border-amber-200"
+                          : "bg-rose-50 text-rose-700 border border-rose-200"
+                      }`}
+                    >
+                      {currentStylistNotes.verdict === "APPROVED" ? "✓ Stylist Approved" : currentStylistNotes.verdict}
+                    </span>
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-white border border-[#EAE5DD] text-[#2E2E2E]">
+                      {Math.round((recommendations[currentIndex]?.score || 0.8) * 100)}% Match
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Closet Best Match Banner */}
+                  {(recommendation.isClosetBestMatch || currentStylistNotes?.is_closet_best_match) && (
+                    <div className="flex items-start gap-2.5 rounded-2xl border border-amber-300 bg-amber-50/90 p-3.5 text-amber-950 shadow-2xs">
+                      <Sparkles size={16} className="text-amber-600 mt-0.5 shrink-0" />
+                      <div className="text-xs leading-relaxed">
+                        <span className="font-bold text-amber-900">✦ Best Match From Your Closet: </span>
+                        <span className="text-amber-800">
+                          {currentStylistNotes?.closet_pairing_note ||
+                           recommendation.closetPairingReason ||
+                           "We paired this outfit with your most versatile footwear for a chic, high-low look with what you currently own."}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Critique */}
+                  {currentStylistNotes.stylist_critique && (
+                    <p className="text-xs md:text-sm text-[#2E2E2E] leading-relaxed font-normal">
+                      "{currentStylistNotes.stylist_critique}"
+                    </p>
+                  )}
+
+                  {/* Highlights Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                    {currentStylistNotes.texture_assessment && (
+                      <div className="rounded-2xl border border-gray-100 bg-white/80 p-3.5">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#8B6F47] block mb-1">
+                          Fabric & Texture Harmony
+                        </span>
+                        <p className="text-xs text-gray-600 leading-normal">
+                          {currentStylistNotes.texture_assessment}
+                        </p>
+                      </div>
+                    )}
+
+                    {currentStylistNotes.weather_assessment && (
+                      <div className="rounded-2xl border border-gray-100 bg-white/80 p-3.5">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#8B6F47] block mb-1">
+                          Weather & Comfort
+                        </span>
+                        <p className="text-xs text-gray-600 leading-normal">
+                          {currentStylistNotes.weather_assessment}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actionable Pro Tip */}
+                  {currentStylistNotes.actionable_styling_tip && (
+                    <div className="flex items-start gap-2.5 rounded-2xl border border-[#8B6F47]/25 bg-[#8B6F47]/10 p-3.5">
+                      <span className="text-base leading-none">💡</span>
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#8B6F47] block">
+                          Stylist Pro Tip
+                        </span>
+                        <p className="text-xs font-medium text-[#2E2E2E] mt-0.5">
+                          {currentStylistNotes.actionable_styling_tip}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="mt-6 rounded-2xl border border-[#EAE5DD] bg-[#FAF7F2] p-4 space-y-3">
+                {recommendation.isClosetBestMatch && (
+                  <div className="flex items-start gap-2.5 rounded-2xl border border-amber-300 bg-amber-50/90 p-3 text-amber-950 shadow-2xs">
+                    <Sparkles size={15} className="text-amber-600 mt-0.5 shrink-0" />
+                    <div className="text-xs leading-relaxed">
+                      <span className="font-bold text-amber-900">✦ Best Match From Your Closet: </span>
+                      <span className="text-amber-800">
+                        {recommendation.closetPairingReason ||
+                         "Paired with your most versatile footwear for a chic look with your available closet pieces."}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                <p className="text-xs text-gray-500">
+                  {generateOutfitReason(recommendation, occasion, season)}
+                </p>
+              </div>
+            )}
 
             {/* Action Buttons Toolbar */}
             <div className="mt-10 flex flex-wrap justify-center gap-4 border-t border-gray-200/60 pt-8">

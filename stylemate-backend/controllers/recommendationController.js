@@ -105,11 +105,14 @@ const recommendOutfit = async (req, res) => {
         : raw.accessories
         ? [raw.accessories]
         : [],
+      isClosetBestMatch: Boolean(raw.is_closet_best_match),
+      closetPairingReason: raw.closet_pairing_reason || null,
     });
 
     const formattedOutfits = rankedOutfits.map((entry) => ({
       outfit: normalizeOutfit(entry.outfit),
       score: entry.score,
+      stylistNotes: entry.stylist_notes || null,
     }));
 
     return res.status(200).json({

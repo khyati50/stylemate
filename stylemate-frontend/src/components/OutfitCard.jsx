@@ -1,6 +1,6 @@
 import { getImageUrl } from "../config/api";
 
-function OutfitCard({ title, item, preferredStyle = "", preferredColor = "" }) {
+function OutfitCard({ title, item, preferredStyle = "", preferredColor = "", badge = "" }) {
   const cleanPrefStyle = typeof preferredStyle === "string" ? preferredStyle.trim().toLowerCase() : "";
   const cleanPrefColor = typeof preferredColor === "string" ? preferredColor.trim().toLowerCase() : "";
 
@@ -58,6 +58,12 @@ function OutfitCard({ title, item, preferredStyle = "", preferredColor = "" }) {
             <p className="text-[9px] md:text-xs font-bold uppercase tracking-[0.18em] text-[#8B6F47]">
               {title}
             </p>
+
+            {badge && (
+              <span className="rounded-full bg-amber-50 text-amber-800 border border-amber-300 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider">
+                {badge}
+              </span>
+            )}
 
             {(isStyleMatch || isColorMatch) && (
               <div className="flex items-center gap-1.5 flex-wrap">

@@ -5,7 +5,7 @@ const { spawn } = require("child_process");
 const AI_DIR = path.resolve(__dirname, "../../ai");
 const VENV_PYTHON = path.join(AI_DIR, "venv/bin/python");
 const PYTHON_CMD = fs.existsSync(VENV_PYTHON) ? VENV_PYTHON : "python3";
-const DEFAULT_TIMEOUT_MS = 30_000; // 30 seconds
+const DEFAULT_TIMEOUT_MS = 60_000; // 60 seconds (allows for Multimodal Vision AI calls)
 
 /**
  * Universal runner to execute any Python script in the ai/ directory.
