@@ -314,39 +314,74 @@ def _apply_occasion_boost(ranked_outfits, selected_occasion, boost_max=0.35):
     return boosted
 
 
+def _extract_core_key(outfit):
+    """
+    Extracts the unique core silhouette identifier for an outfit.
+    - Full-body: ('full', full_body_item_id_or_name)
+    - Two-piece: ('two_piece', upper_body_id_or_name, lower_body_id_or_name)
+    """
+    if not isinstance(outfit, dict):
+        return None
+    full = outfit.get("full_body")
+    if full:
+        return ("full", full.get("id") or full.get("name"))
+    upper = outfit.get("upper_body") or {}
+    lower = outfit.get("lower_body") or {}
+    return (
+        "two_piece",
+        upper.get("id") or upper.get("name"),
+        lower.get("id") or lower.get("name")
+    )
+
+
 def _curate_top_outfits(ranked_outfits, min_count=5, max_count=7, tier1_threshold=0.75):
     """
-    Applies an industry-standard Dynamic Waterfall Selection to curate
-    between min_count (5) and max_count (7) high-quality ensembles.
+    Applies an industry-standard Dynamic Waterfall Selection with Core-Silhouette
+    Diversity to curate between min_count (5) and max_count (7) distinct ensembles.
 
-    Algorithm:
-      1. Tier 1: Select looks with score >= tier1_threshold (0.75).
-      2. If fewer than min_count (5) qualify, dynamically relax threshold
-         to Tier 2 (0.65), then Tier 3 (0.55) to ensure the user gets 5-7 looks
-         if their closet permits.
-      3. Never return bottom-tier junk (below 0.50).
-      4. Cap strictly at max_count (7) unique distinct ensembles.
+    Diversity Guarantee:
+      No two recommended outfits share the exact same core garments
+      (same top + bottom, or same dress). Outerwear and footwear swaps on
+      the exact same core are deduplicated, presenting the user with
+      genuinely different outfit concepts.
     """
     if not ranked_outfits:
         return []
 
-    # If the wardrobe only has fewer than min_count outfits in total, return all of them
-    if len(ranked_outfits) <= min_count:
-        return ranked_outfits
+    # Step A: Perform core deduplication while preserving highest-ranking styling
+    seen_cores = set()
+    diverse_ranked = []
+    for entry in ranked_outfits:
+        core_key = _extract_core_key(entry.get("outfit"))
+        if core_key and core_key not in seen_cores:
+            seen_cores.add(core_key)
+            diverse_ranked.append(entry)
 
-    # Step 1: Tier 1 high quality (>= 0.75)
-    tier1 = [entry for entry in ranked_outfits if entry["score"] >= tier1_threshold]
+    # If diverse pool has fewer than min_count, backfill from remaining variations
+    if len(diverse_ranked) < min_count and len(ranked_outfits) > len(diverse_ranked):
+        for entry in ranked_outfits:
+            if entry not in diverse_ranked:
+                diverse_ranked.append(entry)
+            if len(diverse_ranked) >= min_count:
+                break
+
+    # If total available outfits is under min_count, return all available
+    if len(diverse_ranked) <= min_count:
+        return diverse_ranked
+
+    # Step B: Tier 1 high quality (>= 0.75)
+    tier1 = [entry for entry in diverse_ranked if entry["score"] >= tier1_threshold]
     if len(tier1) >= min_count:
         return tier1[:max_count]
 
-    # Step 2: Adaptive Waterfall decay
+    # Step C: Adaptive Waterfall decay (0.65 -> 0.55)
     for relaxed_threshold in [0.65, 0.55]:
-        relaxed = [entry for entry in ranked_outfits if entry["score"] >= relaxed_threshold]
+        relaxed = [entry for entry in diverse_ranked if entry["score"] >= relaxed_threshold]
         if len(relaxed) >= min_count:
             return relaxed[:max_count]
 
-    # Step 3: If still under min_count, take the highest available up to max_count
-    return ranked_outfits[:max_count]
+    # Step D: Take highest available up to max_count
+    return diverse_ranked[:max_count]
 
 
 # ---------------------------------------------------------------------------

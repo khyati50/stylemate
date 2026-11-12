@@ -31,6 +31,29 @@ to keep the calling interface stable across generate_data.py and ranker.py.
 
 
 # ===========================================================================
+# Imports & Path Setup
+# ===========================================================================
+
+import os
+import sys
+
+RULE_ENGINE_DIR = os.path.join(os.path.dirname(__file__), "rule-engine")
+if RULE_ENGINE_DIR not in sys.path:
+    sys.path.append(RULE_ENGINE_DIR)
+
+try:
+    from occasion_rules import matches_occasion
+except ImportError:
+    def matches_occasion(item_occasions, target_occasion):
+        if not target_occasion:
+            return True
+        if not item_occasions:
+            return False
+        clean_target = str(target_occasion).strip().lower()
+        return any(clean_target in str(o).lower() or str(o).lower() in clean_target for o in item_occasions)
+
+
+# ===========================================================================
 # Constants — Color
 # ===========================================================================
 
@@ -311,7 +334,7 @@ def _compute_occasion_suitability(outfit, selected_occasion):
             continue
         total += 1
         item_occasions = _get_occasions(item)
-        if "all" in item_occasions or occasion in item_occasions:
+        if "all" in item_occasions or matches_occasion(item_occasions, selected_occasion):
             matched += 1
 
     return round(matched / total, 4) if total > 0 else 1.0
